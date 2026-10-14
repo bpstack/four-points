@@ -170,9 +170,9 @@
     `frontend/docs/fnb/FNB-FRONTEND.md`, ya estaba ignorado). **El contenido
     sigue en el historial**: lo privado se limpia igualmente en la fase 2.
   - **Dos Excel archivados parecen datos reales del personal**
-    (`docs/checklists/PLANNING 2026.xlsx` y
-    el Excel de presencias del personal en `docs/frontend/schedule/`). No se han
-    abierto. Son candidatos a privados para la fase 2.
+    (`docs/checklists/PLANNING 2026.xlsx` y el Excel de presencias del personal
+    en `docs/frontend/schedule/`). No se han abierto. Son candidatos a privados
+    para la fase 2.
 - **Rechazado:** aplanar el archivo en una sola carpeta (se pierde el origen de
   cada fichero) y usar `git mv` (versionaría el destino, que debe ser local).
 
@@ -554,15 +554,16 @@
     `callback(null, false)` las peticiones simples llegarían a las rutas.
   - No se añade token CSRF ni cabecera obligatoria.
   - **Ninguna ruta GET puede modificar datos**: una navegación normal envía las
-    cookies `Lax` sin `Origin`. Excepción revisada: `GET /api/checklists/:id/run`
-    abre el run del día y cierra los atrasados; es idempotente.
+    cookies `Lax` sin `Origin`. Excepción revisada:
+    `GET /api/checklists/:id/run` abre el run del día y cierra los atrasados; es
+    idempotente.
   - `http://localhost:3000` solo está en la lista fuera de producción.
 - **Motivo:** los navegadores envían `Origin` en toda petición POST, PUT, PATCH
   y DELETE, así que comprobarlo es la defensa de «verificar el origen» de OWASP.
   Una cabecera obligatoria no añade nada y obligaría a tocar más de 25 llamadas
-  `fetch` del frontend. Comprobado en producción el 2026-09-29 con una sesión
-  de `admin` válida: los orígenes ajenos, del mismo sitio y `null` reciben 403;
-  el propio pasa.
+  `fetch` del frontend. Comprobado en producción el 2026-09-29 con una sesión de
+  `admin` válida: los orígenes ajenos, del mismo sitio y `null` reciben 403; el
+  propio pasa.
 
 ## ADR-030 — Entorno preview completo en subdominios de `four-points.stackbp.es`
 
@@ -601,14 +602,14 @@
 - **Estado:** ✅ aceptada (2026-10-04)
 - **Fecha:** 2026-10-04
 - **Decisión:**
-  - `claude/compassionate-planck-gh6aof` entra en `main` con un **merge
-    normal** («Create a merge commit»), **no con squash**. Los commits llegan a
-    `main` uno a uno.
+  - `claude/compassionate-planck-gh6aof` entra en `main` con un **merge normal**
+    («Create a merge commit»), **no con squash**. Los commits llegan a `main`
+    uno a uno.
   - Los **5 commits con autor `Claude <noreply@anthropic.com>`** (`c4719b2`,
     `8af5641`, `9c583eb`, `1d5b3ca`, `d432c30`) **no se rehacen ahora**: su
     autor pasa a `bpstack` en la reescritura de la fase 2, con
-    `git-filter-repo --mailmap`, la misma pasada que quita los ficheros
-    privados (`GITCLEAN.md`).
+    `git-filter-repo --mailmap`, la misma pasada que quita los ficheros privados
+    (`GITCLEAN.md`).
   - Los pares fnb y revert se quedan: se anulan entre sí y no cambian código.
   - La lista de arreglos vive en `git log` y en `docs/VERIFY.md`, versionado.
 - **Motivo:** `TODO.md` borra lo terminado porque `git log` ya lo registra. Un
@@ -639,22 +640,22 @@
     entrada.
   - **F&B**: quien tiene acceso sube el PDF, mete cifras a mano y borra el día
     que sea, de cualquier fecha.
-  - **Mantenimiento**: quien tiene acceso crea, edita, cambia de estado,
-    asigna, borra y restaura cualquier parte.
+  - **Mantenimiento**: quien tiene acceso crea, edita, cambia de estado, asigna,
+    borra y restaura cualquier parte.
   - **Caja**: los turnos y los días cerrados siguen editables por los roles que
     los gestionan.
   - **Parking** (añadido el 2026-10-04): el importe cobrado, el método y la
     referencia de pago se pueden editar en cualquier estado de la reserva,
     también `completed`.
-  - **Mensajería** (añadido el 2026-10-04): cualquier rol ve el nombre, el
-    email y el rol de todos los usuarios activos al empezar una conversación,
-    y la lista de participantes devuelve sus emails y `last_read_at`.
+  - **Mensajería** (añadido el 2026-10-04): cualquier rol ve el nombre, el email
+    y el rol de todos los usuarios activos al empezar una conversación, y la
+    lista de participantes devuelve sus emails y `last_read_at`.
 - **Motivo:** decisión del propietario. El hotel trabaja con pocas personas que
   necesitan acceso completo, y mantenimiento ya guarda historial de cada cambio.
-- **Rechazado:** separar acciones de `admin` en F&B (borrar días, cifras a
-  mano) y en mantenimiento (borrar, restaurar, cambiar estado); bloquear la
-  edición de turnos y días cerrados; bloquear el cobro de parking según el
-  estado de la reserva; ocultar emails y roles en el directorio de mensajería.
+- **Rechazado:** separar acciones de `admin` en F&B (borrar días, cifras a mano)
+  y en mantenimiento (borrar, restaurar, cambiar estado); bloquear la edición de
+  turnos y días cerrados; bloquear el cobro de parking según el estado de la
+  reserva; ocultar emails y roles en el directorio de mensajería.
 - **Consecuencias:** salen de `TODO.md` los cinco puntos que pedían esos
   permisos. Siguen abiertos los que no son de permisos: validar los importes
   manuales de F&B, el contenido del PDF y el rastro de cambios de dinero en caja
@@ -678,14 +679,14 @@
     plazo.
   - Las prioridades 🔴🟡🟢 se mantienen dentro de cada sección.
 - **Motivo:** decisión del propietario. El objetivo es cerrar las brechas y
-  publicar; las mejoras se pueden hacer en cualquier momento, y esperar a
-  todas retrasaría la publicación sin reducir el riesgo.
+  publicar; las mejoras se pueden hacer en cualquier momento, y esperar a todas
+  retrasaría la publicación sin reducir el riesgo.
 - **Rechazado:** resolver todo `TODO.md` antes de la fase 2 (ADR-027 tal como
   estaba).
-- **Consecuencias:** `TODO.md` se reorganiza en las dos secciones y
-  `ROADMAP.md` cambia la definición de la fase 1c. Los dudosos se clasificaron
-  como mejora: datos sensibles en los logs (no son públicos) y los informes de
-  caja sin `canViewReports` (un rol interno viendo totales).
+- **Consecuencias:** `TODO.md` se reorganiza en las dos secciones y `ROADMAP.md`
+  cambia la definición de la fase 1c. Los dudosos se clasificaron como mejora:
+  datos sensibles en los logs (no son públicos) y los informes de caja sin
+  `canViewReports` (un rol interno viendo totales).
 - **Revisa:** ADR-027 en el alcance de la fase 1c.
 
 ## ADR-034 — La limpieza del historial es híbrida: eliminar, reemplazar y cambiar autoría
@@ -698,16 +699,16 @@
     1. **Eliminar** del historial los ficheros o directorios enteramente
        privados (volcados, scripts con la contraseña de Aiven, Excel del
        personal).
-    2. **Reemplazar contenido** (`--replace-text`) en los ficheros legítimos
-       que llevaron credenciales o nombres reales escritos: el fichero se
-       conserva y solo cambia el valor.
+    2. **Reemplazar contenido** (`--replace-text`) en los ficheros legítimos que
+       llevaron credenciales o nombres reales escritos: el fichero se conserva y
+       solo cambia el valor.
     3. **Cambiar autoría** (`--mailmap`), como ya decía ADR-031.
-  - Se aplica poco a poco: cada operación se prueba y se audita en el clon
-    antes de la siguiente.
+  - Se aplica poco a poco: cada operación se prueba y se audita en el clon antes
+    de la siguiente.
   - Antes, en la rama, se quita del árbol lo que no hace falta en el repo
     público y los scripts legítimos leen las credenciales de `backend/.env`.
-- **Motivo:** decisión del propietario. Borrar del historial un script útil
-  solo porque llevó una contraseña pierde su historia; reemplazar el valor la
+- **Motivo:** decisión del propietario. Borrar del historial un script útil solo
+  porque llevó una contraseña pierde su historia; reemplazar el valor la
   conserva. Lo enteramente privado no tiene nada que conservar.
 - **Rechazado:** solo eliminar ficheros (la regla anterior de `GITCLEAN.md`).
 - **Consecuencias:** `GITCLEAN.md` clasifica los candidatos por operación. Los
@@ -727,22 +728,22 @@
     `claude/compassionate-planck-gh6aof`**. `chore/audit-prep-sprint-0`,
     `feature/ai-schedule-generator`, `feature/auth-hardening` y
     `feature/observability-pino` no tienen ningún commit fuera de `main`.
-  - El repositorio actual se **renombra a `four-points-archive`**, sigue
-    privado y se marca como archivado (solo lectura). El nuevo, con el
-    historial limpio, se crea como **`four-points`**: primero privado, se
-    revisa y se pasa a público, con secret scanning y push protection.
-  - Orden para no subir historial viejo al repositorio nuevo: renombrar;
-    apuntar `origin` de los tres equipos a `four-points-archive` (o
-    sustituir esos clones); archivar; crear el nuevo; reconectar Vercel y
-    Render (se enlazan por ID y seguirían en el archivado).
-- **Motivo:** decisión del propietario. Las cuatro ramas no aportan nada que
-  no esté en `main` y cada rama más es historial que limpiar y auditar.
-  Mantener el nombre `four-points` conserva enlaces y README.
-- **Rechazado:** publicar todas las ramas (ADR-026 tal como estaba); un
-  nombre nuevo para el repositorio público.
-- **Consecuencias:** `GITCLEAN.md` cambia la lista de ramas. Tras crear el
-  nuevo repositorio, GitHub deja de redirigir `bpstack/four-points` al
-  archivado: un clon viejo sin el `origin` cambiado subiría al público.
+  - El repositorio actual se **renombra a `four-points-archive`**, sigue privado
+    y se marca como archivado (solo lectura). El nuevo, con el historial limpio,
+    se crea como **`four-points`**: primero privado, se revisa y se pasa a
+    público, con secret scanning y push protection.
+  - Orden para no subir historial viejo al repositorio nuevo: renombrar; apuntar
+    `origin` de los tres equipos a `four-points-archive` (o sustituir esos
+    clones); archivar; crear el nuevo; reconectar Vercel y Render (se enlazan
+    por ID y seguirían en el archivado).
+- **Motivo:** decisión del propietario. Las cuatro ramas no aportan nada que no
+  esté en `main` y cada rama más es historial que limpiar y auditar. Mantener el
+  nombre `four-points` conserva enlaces y README.
+- **Rechazado:** publicar todas las ramas (ADR-026 tal como estaba); un nombre
+  nuevo para el repositorio público.
+- **Consecuencias:** `GITCLEAN.md` cambia la lista de ramas. Tras crear el nuevo
+  repositorio, GitHub deja de redirigir `bpstack/four-points` al archivado: un
+  clon viejo sin el `origin` cambiado subiría al público.
 - **Revisa:** ADR-026 en las ramas que se publican.
 
 ## ADR-036 — El original se archiva al final y la rotación va después de publicar
@@ -750,27 +751,25 @@
 - **Estado:** ✅ aceptada (2026-10-05)
 - **Fecha:** 2026-10-05
 - **Decisión:**
-  - **Orden de la publicación:** renombrar el original a
-    `four-points-archive`; crear `four-points` privado con el historial
-    limpio; sustituir los clones locales por clones nuevos (no se cambia el
-    `origin`); reconectar Vercel y Render, producción y preview; y solo
-    entonces archivar el original y pasar el nuevo a público.
-  - **La rotación de credenciales no bloquea la publicación:** se hace
-    después, en «Después de publicar» de `TODO.md`.
+  - **Orden de la publicación:** renombrar el original a `four-points-archive`;
+    crear `four-points` privado con el historial limpio; sustituir los clones
+    locales por clones nuevos (no se cambia el `origin`); reconectar Vercel y
+    Render, producción y preview; y solo entonces archivar el original y pasar
+    el nuevo a público.
+  - **La rotación de credenciales no bloquea la publicación:** se hace después,
+    en «Después de publicar» de `TODO.md`.
   - **El procedimiento de rotación queda fuera del repositorio**, con el
     propietario.
-- **Motivo:** decisión del propietario. Un repositorio archivado no admite
-  push: mientras producción despliegue desde el original, tiene que poder
-  recibir un arreglo urgente. El historial
-  publicado no contiene credenciales y la BD de producción solo tiene datos de
-  prueba. El procedimiento describe paneles, equipos y claves concretas que no
-  sirven a quien lea el repositorio.
+- **Motivo:** decisión del propietario. Un repositorio archivado no admite push:
+  mientras producción despliegue desde el original, tiene que poder recibir un
+  arreglo urgente. El historial publicado no contiene credenciales y la BD de
+  producción solo tiene datos de prueba. El procedimiento describe paneles,
+  equipos y claves concretas que no sirven a quien lea el repositorio.
 - **Revisa:** ADR-035 en el orden; ADR-007 en el momento de la rotación.
 
 ## ADR-037 — La demo va en la propia web y el repositorio se publica después
 
-- **Estado:** ✅ aceptada (2026-10-05) · 📌 usuarios demo y acceso revisados
-  por
+- **Estado:** ✅ aceptada (2026-10-05) · 📌 usuarios demo y acceso revisados por
   [ADR-038](#adr-038--un-solo-admin-demo-restringido-y-la-instalación-local-con-mysql-en-docker)
 - **Fecha:** 2026-10-05
 - **Decisión:**
@@ -795,10 +794,10 @@
 - **Estado:** ✅ aceptada (2026-10-05)
 - **Fecha:** 2026-10-05
 - **Decisión:**
-  - **Un solo usuario demo, con rol admin**, en lugar de uno por rol: como
-    admin ve todos los módulos. Se entra con un botón «Probar la demo» en el
-    login, sin contraseña: el usuario tiene una aleatoria que nadie conoce, y el
-    botón y su ruta solo existen con `DEMO_MODE=true` en el backend.
+  - **Un solo usuario demo, con rol admin**, en lugar de uno por rol: como admin
+    ve todos los módulos. Se entra con un botón «Probar la demo» en el login,
+    sin contraseña: el usuario tiene una aleatoria que nadie conoce, y el botón
+    y su ruta solo existen con `DEMO_MODE=true` en el backend.
   - **Marca `is_demo`** en el usuario, que viaja en el token. Un middleware
     bloquea solo lo prohibido: gestión de usuarios y contraseñas, el propio
     perfil, departamentos, toda subida de ficheros (cualquier `multipart`), el
@@ -813,19 +812,19 @@
     pnpm como ahora. `pnpm setup:local` crea las tablas, el primer admin y los
     departamentos, y carga el mock.
 - **Motivo:** simplicidad, decisión del propietario. Un admin demo prueba toda
-  la app de una vez, y un botón no obliga a escribir nada. Con roles reales,
-  los permisos funcionan igual que para cualquier usuario y la restricción vive
-  en un solo sitio. Render gratuito se duerme, así que un cron a hora fija
-  puede no ejecutarse. Docker ahorra instalar MySQL; meter en él backend,
-  frontend y solver sería un segundo sistema que producción no usa.
+  la app de una vez, y un botón no obliga a escribir nada. Con roles reales, los
+  permisos funcionan igual que para cualquier usuario y la restricción vive en
+  un solo sitio. Render gratuito se duerme, así que un cron a hora fija puede no
+  ejecutarse. Docker ahorra instalar MySQL; meter en él backend, frontend y
+  solver sería un segundo sistema que producción no usa.
 - **Rechazado:** usuarios demo por rol y contraseña pública en el login
   (ADR-037); lista blanca de escrituras con el rol `demo-admin`; reinicio por
   GitHub Actions (credenciales de Aiven en GitHub y tareas programadas que se
   desactivan tras 60 días sin actividad); la app entera en Docker.
 - **Consecuencias:** CSRF sigue cubierto por `SameSite=Lax` y el rechazo de
   orígenes ajenos; se añade un test. Para XSS se comprueba que un enlace
-  `javascript:` en las notas del checklist no se ejecuta. Límites nuevos para
-  el solver y las escrituras del usuario demo. El README pasa a explicar la
+  `javascript:` en las notas del checklist no se ejecuta. Límites nuevos para el
+  solver y las escrituras del usuario demo. El README pasa a explicar la
   instalación local.
 - **Revisa:** ADR-037 en los usuarios demo y su acceso.
 
@@ -834,23 +833,22 @@
 - **Estado:** ✅ aceptada (2026-10-05)
 - **Fecha:** 2026-10-05
 - **Decisión:**
-  - **Aiven** sigue siendo la única BD del proyecto que se comparte:
-    producción, preview y la demo pública.
+  - **Aiven** sigue siendo la única BD del proyecto que se comparte: producción,
+    preview y la demo pública.
   - **La BD local** vuelve a ser parte documentada del proyecto: quien clona el
-    repositorio la monta con `pnpm setup:local` (con MySQL propio o en Docker)
-    y el propietario puede seguir usando la suya con `pnpm dev:local`. Se
+    repositorio la monta con `pnpm setup:local` (con MySQL propio o en Docker) y
+    el propietario puede seguir usando la suya con `pnpm dev:local`. Se
     mantienen `DB_ENVIRONMENT`, el preset `local` y `LOCAL_DB_*`.
-- **Motivo:** ADR-038: quien quiera ver la aplicación entera la instala en
-  local con un admin completo. Y lo que ADR-015 rechazaba ya existe: una
-  instalación desde los scripts del repositorio, comprobada el 2026-10-05 en
-  un MySQL limpio, deja la misma estructura que Aiven (1161 de 1161 columnas,
-  índices, claves, triggers y procedimientos) y los mismos catálogos.
-- **Rechazado:** quitar el soporte de BD local (la tarea pendiente de
-  ADR-015).
+- **Motivo:** ADR-038: quien quiera ver la aplicación entera la instala en local
+  con un admin completo. Y lo que ADR-015 rechazaba ya existe: una instalación
+  desde los scripts del repositorio, comprobada el 2026-10-05 en un MySQL
+  limpio, deja la misma estructura que Aiven (1161 de 1161 columnas, índices,
+  claves, triggers y procedimientos) y los mismos catálogos.
+- **Rechazado:** quitar el soporte de BD local (la tarea pendiente de ADR-015).
 - **Consecuencias:** las migraciones se siguen aplicando en local y en Aiven
   (`INDEX.md`). Dos fallos del baseline congelado, que impedían instalar desde
-  cero, se corrigen en `setup:local` y con
-  `20261005_complete_fresh_install.sql` sin tocar `aiven/` (ADR-021).
+  cero, se corrigen en `setup:local` y con `20261005_complete_fresh_install.sql`
+  sin tocar `aiven/` (ADR-021).
 - **Revisa:** ADR-015 en la BD local.
 
 ## ADR-040 — La documentación obsoleta se archiva fuera del repositorio
@@ -863,20 +861,20 @@
   que lo contiene: `git show <commit>:<ruta>` lo recupera.
 - **Archivados el 2026-10-05** (último commit: `da7c643`):
 
-  | Ruta | Por qué |
-  | --- | --- |
-  | `backend/backend.md` | Duplicaba `backend/README.md` en inglés; decía que el backend era privado y describía la demo antigua (lista blanca de rutas) |
-  | `backend/README.md` | 442 líneas de arquitectura repetidas en `docs/`; sustituido por un README corto |
-  | `frontend/README.md` | 877 líneas con Next 14 / React 18 y la demo antigua; sustituido por un README corto |
-  | `backend/db-mysql/MIGRATION_GUIDE.md` | Mandaba instalar con `MASTER_INSTALL.sql` a mano, que falla desde cero; lo sustituye `pnpm setup:local` (ADR-039) |
-  | `frontend/messages/cmd.md` | Una línea con un comando de búsqueda |
-  | `frontend/app/dashboard/conciliation/nota.md` | Idea sin hacer: una descripción obligatoria en cada entrada de la conciliación (habitaciones OOO que restan) |
+  | Ruta                                          | Por qué                                                                                                                       |
+  | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+  | `backend/backend.md`                          | Duplicaba `backend/README.md` en inglés; decía que el backend era privado y describía la demo antigua (lista blanca de rutas) |
+  | `backend/README.md`                           | 442 líneas de arquitectura repetidas en `docs/`; sustituido por un README corto                                               |
+  | `frontend/README.md`                          | 877 líneas con Next 14 / React 18 y la demo antigua; sustituido por un README corto                                           |
+  | `backend/db-mysql/MIGRATION_GUIDE.md`         | Mandaba instalar con `MASTER_INSTALL.sql` a mano, que falla desde cero; lo sustituye `pnpm setup:local` (ADR-039)             |
+  | `frontend/messages/cmd.md`                    | Una línea con un comando de búsqueda                                                                                          |
+  | `frontend/app/dashboard/conciliation/nota.md` | Idea sin hacer: una descripción obligatoria en cada entrada de la conciliación (habitaciones OOO que restan)                  |
 
 - **Motivo:** el repositorio va a ser público; un documento con datos falsos
   confunde más que su ausencia, y los README largos repetían `docs/` sin
   mantenerse.
-- **Rechazado:** actualizarlos en el sitio. Era más trabajo y seguían
-  duplicando `docs/general`.
+- **Rechazado:** actualizarlos en el sitio. Era más trabajo y seguían duplicando
+  `docs/general`.
 - **Consecuencias:** los documentos del proceso de publicación (`GITCLEAN.md`,
   `VERIFY.md`, `ROADMAP.md`, `SESSION.md`) se archivan igual cuando el
   repositorio sea público.
@@ -886,23 +884,24 @@
 - **Estado:** ✅ aceptada (2026-10-05)
 - **Fecha:** 2026-10-05
 - **Decisión:** `ROADMAP.md`, `GITCLEAN.md` y `VERIFY.md` pasan a
-  `docs/_archive/open-source-release/`, con un README que dice qué es cada
-  uno. Se recuperan del historial público:
+  `docs/_archive/open-source-release/`, con un README que dice qué es cada uno.
+  Se recuperan del historial público:
 
-  | Fichero | Comando |
-  | --- | --- |
-  | `ROADMAP.md` | `git show 5f0daa2:docs/ROADMAP.md` |
+  | Fichero       | Comando                             |
+  | ------------- | ----------------------------------- |
+  | `ROADMAP.md`  | `git show 5f0daa2:docs/ROADMAP.md`  |
   | `GITCLEAN.md` | `git show 025e76c:docs/GITCLEAN.md` |
-  | `VERIFY.md` | `git show 025e76c:docs/VERIFY.md` |
+  | `VERIFY.md`   | `git show 025e76c:docs/VERIFY.md`   |
 
-  Lo pendiente vive solo en `TODO.md`, y si
-  un punto depende de otro se dice en el propio punto.
+  Lo pendiente vive solo en `TODO.md`, y si un punto depende de otro se dice en
+  el propio punto.
+
 - **Motivo:** describían el paso de privado a público, que terminó el
   2026-10-05: todas las fases cerradas, el historial reescrito y auditado,
   ninguna fila de `VERIFY.md` sin probar o fallida (194 filas). Juntos cuentan
   el proceso entero; sueltos en `docs/` parecían trabajo vivo.
-- **Consecuencias:** las ADR anteriores que los citan no se tocan; el comando
-  de arriba los recupera. `SESSION.md` sigue en `docs/`. Aplica ADR-040.
+- **Consecuencias:** las ADR anteriores que los citan no se tocan; el comando de
+  arriba los recupera. `SESSION.md` sigue en `docs/`. Aplica ADR-040.
 
 ## ADR-042 — El harness se implanta por subproyecto, empezando por `backend/`
 

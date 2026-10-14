@@ -1,8 +1,12 @@
 # 🏨 Hotel DB - Sistema de Gestión
 
-Base de datos completa para gestión hotelera con múltiples módulos: parking, logbook, scheduling, messaging, etc.
+Base de datos completa para gestión hotelera con múltiples módulos: parking,
+logbook, scheduling, messaging, etc.
 
-> ⚠️ **Política de migraciones (desde 2026-05-20):** sólo incrementales. Archivos `aiven/NN_*.sql` **congelados** como snapshot del install base. Todo cambio nuevo va a `scripts/AAAAMMDD_*.sql`. Ver [`MIGRATIONS_POLICY.md`](./MIGRATIONS_POLICY.md).
+> ⚠️ **Política de migraciones (desde 2026-05-20):** sólo incrementales.
+> Archivos `aiven/NN_*.sql` **congelados** como snapshot del install base. Todo
+> cambio nuevo va a `scripts/AAAAMMDD_*.sql`. Ver
+> [`MIGRATIONS_POLICY.md`](./MIGRATIONS_POLICY.md).
 
 ## 📁 Estructura de Archivos
 
@@ -49,8 +53,8 @@ pnpm setup:local
 ```
 
 No ejecutes `MASTER_INSTALL.sql` a mano: borra `hotel_db`, no aplica las
-migraciones de `scripts/` y tiene dos fallos del baseline que solo
-`setup:local` corrige (ADR-039).
+migraciones de `scripts/` y tiene dos fallos del baseline que solo `setup:local`
+corrige (ADR-039).
 
 ### Verificación
 
@@ -97,9 +101,11 @@ mysql -u root -p < aiven/99_verification.sql
 
 ### Integridad referencial
 
-- **spot_id**: `ON DELETE RESTRICT` - No se puede borrar plaza con reservas activas
+- **spot_id**: `ON DELETE RESTRICT` - No se puede borrar plaza con reservas
+  activas
 - **vehicle_id**: `ON DELETE SET NULL` - Preserva reserva si se borra vehículo
-- **operator_id, created_by, updated_by**: `ON DELETE SET NULL` - Preserva historial
+- **operator_id, created_by, updated_by**: `ON DELETE SET NULL` - Preserva
+  historial
 
 ### Validaciones automáticas (Parking)
 
@@ -140,7 +146,8 @@ WHERE status = 'completed'
 
 ## 🆘 Troubleshooting
 
-Una instalación que falla: vuelve a lanzar `pnpm setup:local -- --force` (ver «Instalación completa»).
+Una instalación que falla: vuelve a lanzar `pnpm setup:local -- --force` (ver
+«Instalación completa»).
 
 ---
 

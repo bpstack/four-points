@@ -61,12 +61,12 @@ Departments are the application's general ones (table `departments`).
 
 - **Everything is recorded in the history**: creating, editing and deleting
   entries and comments, and also reading, unmarking, resolving and reopening.
-  Each change and its history rows are written in one transaction: either
-  both are saved or neither is.
+  Each change and its history rows are written in one transaction: either both
+  are saved or neither is.
 - **A comment leaves two history rows** (one of the comment, one of the entry),
   and **each read or unmark adds one**, with no limit; all of them show in the
-  entry's history in Reports and in the recent activity. Left as is (decided
-  on 2026-10-12).
+  entry's history in Reports and in the recent activity. Left as is (decided on
+  2026-10-12).
 - **Nothing is truly deleted**: entries and comments are only marked with
   `deleted_at`. There is no way to restore them from the interface.
 - **Only the author edits or deletes** their entry or comment.

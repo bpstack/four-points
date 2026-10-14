@@ -63,10 +63,10 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 Luego, «Después de publicar» de `TODO.md`, por prioridad:
 
 2. **Rotar las credenciales de producción** (BD, clave JWT, Cloudinary, claves
-   de IA). Ninguna de ellas está en el historial, pero sí la contraseña en
-   claro de un usuario de la aplicación (`test-login.js`, commit `8595ec0`):
-   cambiarla también. Se hace en los paneles y se comprueba que producción y
-   preview siguen funcionando.
+   de IA). Ninguna de ellas está en el historial, pero sí la contraseña en claro
+   de un usuario de la aplicación (`test-login.js`, commit `8595ec0`): cambiarla
+   también. Se hace en los paneles y se comprueba que producción y preview
+   siguen funcionando.
 3. **Rastro de cambios en dinero:** ingresos de F&B, pagos y recuentos de caja,
    cobros de parking.
 4. **Fechas y «hoy» según la zona horaria de cada pieza**, como tarea propia
@@ -81,20 +81,19 @@ Nada ahora mismo.
 
 ## Cuidado con esto
 
-- **`main` está protegida** (ruleset `protect-main`): solo entra por PR, con
-  los checks `backend` y `frontend` en verde y como merge commit (sin squash ni
+- **`main` está protegida** (ruleset `protect-main`): solo entra por PR, con los
+  checks `backend` y `frontend` en verde y como merge commit (sin squash ni
   rebase); no admite force push ni borrado. La rama de trabajo no tiene reglas.
-- **Preview y producción comparten la BD de Aiven** y las cookies de sesión:
-  lo que se prueba en preview cambia datos de producción, y entrar en preview
+- **Preview y producción comparten la BD de Aiven** y las cookies de sesión: lo
+  que se prueba en preview cambia datos de producción, y entrar en preview
   sustituye la sesión de producción en ese navegador.
-- **La cuenta demo es un admin** (`users.is_demo = 1`): lo que no deba tocar
-  se bloquea en la ruta con `denyDemo`/`denyDemoWrites` o en
-  `demoRestriction`. Una ruta nueva que escriba fuera de lo que reinicia el
-  mock (usuarios, catálogos, configuración) necesita su guarda. Si cambia la
-  base de horarios de la demo, se regenera el seed local con
-  `pnpm seed:scheduling:export`.
-- **Los `AGENTS.md` de módulo** ya se corrigieron, pero no son fuente fiable:
-  se contrastan siempre con el código y la BD.
+- **La cuenta demo es un admin** (`users.is_demo = 1`): lo que no deba tocar se
+  bloquea en la ruta con `denyDemo`/`denyDemoWrites` o en `demoRestriction`. Una
+  ruta nueva que escriba fuera de lo que reinicia el mock (usuarios, catálogos,
+  configuración) necesita su guarda. Si cambia la base de horarios de la demo,
+  se regenera el seed local con `pnpm seed:scheduling:export`.
+- **Los `AGENTS.md` de módulo** ya se corrigieron, pero no son fuente fiable: se
+  contrastan siempre con el código y la BD.
 - **Nada de `docs/_archive/` se publica** (git lo ignora). Si algo de ahí debe
   ser público, se copia fuera.
 - **Enlaces rotos conocidos:** 3 ficheros fuera de `docs/` citan todavía

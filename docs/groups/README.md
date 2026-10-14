@@ -18,8 +18,8 @@ lines in parallel, and sends in-app reminders before the important dates.
   (the latter needs it to open group notifications from the profile).
   `mantenimiento` does not see the contacts (email and phone), neither in their
   tab nor in the history (decided on 2026-10-12).
-- **`admin` and `group-admin`** create and edit groups, payments,
-  contacts, rooms and statuses, and send manual notifications.
+- **`admin` and `group-admin`** create and edit groups, payments, contacts,
+  rooms and statuses, and send manual notifications.
 - **Only `admin`** deletes a group.
 
 The screens do not hide the editing controls by role: a user who cannot edit
@@ -85,9 +85,9 @@ Six tables (`backend/db-mysql/aiven/10_group-tracking.sql`):
   - The configuration also lists reminders for unsigned contracts and pending
     balances, but **they are never generated**.
   - Duplicates are only checked within 48 hours: a payment due in 2 days gets
-    both the "15 days" and the "7 days" reminder every two days, and an
-    overdue payment is reminded every two days until it is paid; the rooming
-    list behaves the same. Left as is on 2026-10-12.
+    both the "15 days" and the "7 days" reminder every two days, and an overdue
+    payment is reminded every two days until it is paid; the rooming list
+    behaves the same. Left as is on 2026-10-12.
 - **No emails are sent**: the module includes an email service, but nothing
   calls it. All notifications are in-app.
 

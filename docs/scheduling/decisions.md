@@ -1312,27 +1312,27 @@ parallel, so generating the same month twice can give two different rosters.
 Measured on the local October 2026 month (10 employees, 31 days) and on the
 synthetic 30×31 benchmark, four runs per setting on 12 cores:
 
-| Setting                                 | 10 employees                                  | 30×31                                     |
-| --------------------------------------- | --------------------------------------------- | ----------------------------------------- |
-| Current (no seed, all threads)          | 4 different rosters, all OPTIMAL, ~0.8 s      | different rosters, FEASIBLE at 30 s       |
-| Seed 0, all threads                     | 3 different rosters out of 4                  | —                                         |
-| Seed 0, 1 thread                        | always the same, but no solution in 30 s      | —                                         |
-| Seed 0, `interleave_search`, 8 threads  | always the same, OPTIMAL, ~3.5 s              | the same roster, FEASIBLE at 30 s         |
+| Setting                                | 10 employees                             | 30×31                               |
+| -------------------------------------- | ---------------------------------------- | ----------------------------------- |
+| Current (no seed, all threads)         | 4 different rosters, all OPTIMAL, ~0.8 s | different rosters, FEASIBLE at 30 s |
+| Seed 0, all threads                    | 3 different rosters out of 4             | —                                   |
+| Seed 0, 1 thread                       | always the same, but no solution in 30 s | —                                   |
+| Seed 0, `interleave_search`, 8 threads | always the same, OPTIMAL, ~3.5 s         | the same roster, FEASIBLE at 30 s   |
 
 Every roster in a row had the same soft penalty: they are equally good, only
-different. With `interleave_search` the result also depends on `num_workers`
-(8 and 12 give different rosters), and when the 30 s limit is hit the cut
-point depends on the speed of the machine, so local and production could
-still differ on large months.
+different. With `interleave_search` the result also depends on `num_workers` (8
+and 12 give different rosters), and when the 30 s limit is hit the cut point
+depends on the speed of the machine, so local and production could still differ
+on large months.
 
 **Decision.** Keep the current behaviour: no seed, all threads, a wall-clock
 limit. Two generations of the same month may differ; both satisfy every hard
 rule and have the same penalty.
 
-**Why.** Reproducibility would cost about 4× the generation time for the
-current hotel and would still not hold across machines for months that hit
-the time limit. A roster is generated a few times a month and then edited by
-hand; the owner chose speed over reproducibility.
+**Why.** Reproducibility would cost about 4× the generation time for the current
+hotel and would still not hold across machines for months that hit the time
+limit. A roster is generated a few times a month and then edited by hand; the
+owner chose speed over reproducibility.
 
 **If it is revisited.** Set `random_seed`, `interleave_search = True` and a
 fixed `num_workers` in `model.py`, and replace `max_time_in_seconds` with
@@ -1343,30 +1343,29 @@ fixed `num_workers` in `model.py`, and replace `max_time_in_seconds` with
 **Context.** `LI` (Libre Disposición) is not in `REST_SHIFTS` of
 `constraints/rest.py` nor in `_SPECIAL_REST` of `constraints/libres.py`: a
 locked `LI` neither counts towards the two free days of any 7-day window nor
-lowers the monthly minimum of `L`. Whoever has an `LI` also gets every
-regular free day.
+lowers the monthly minimum of `L`. Whoever has an `LI` also gets every regular
+free day.
 
-**Decision.** Keep it. It matches the catalogue (`README.md`: "extra free
-day"; `services/scheduling/AGENTS.md`: "outside the weekly rotation").
+**Decision.** Keep it. It matches the catalogue (`README.md`: "extra free day";
+`services/scheduling/AGENTS.md`: "outside the weekly rotation").
 
-**Why.** The owner's priority is a solver that keeps working: counting `LI`
-as rest would change two hard rules and the rosters of every month with an
-`LI`, with no reported problem behind it.
+**Why.** The owner's priority is a solver that keeps working: counting `LI` as
+rest would change two hard rules and the rosters of every month with an `LI`,
+with no reported problem behind it.
 
 ## 2026-10-12 — Solver daemon: startup limit and queue left as they are
 
 **Context.** `services/scheduling/solver-client.ts` takes the semaphore before
-waiting for the daemon, waits up to 30 minutes for it to start on every
-platform (the limit was set for Windows with Defender) and queues requests
-without a limit.
+waiting for the daemon, waits up to 30 minutes for it to start on every platform
+(the limit was set for Windows with Defender) and queues requests without a
+limit.
 
 **Decision.** Keep it.
 
-**Why.** The risk is low: only `admin` generates, the demo account is limited
-to 5 generations per IP and 30 in total per hour, the daemon starts in 1–3 s
-when it is warm, and a request cancelled while it waits returns before
-calling the solver.
+**Why.** The risk is low: only `admin` generates, the demo account is limited to
+5 generations per IP and 30 in total per hour, the daemon starts in 1–3 s when
+it is warm, and a request cancelled while it waits returns before calling the
+solver.
 
-**If it is revisited.** A shorter startup limit outside Windows and a cap on
-the queue that answers "solver busy".
-
+**If it is revisited.** A shorter startup limit outside Windows and a cap on the
+queue that answers "solver busy".
