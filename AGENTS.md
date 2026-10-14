@@ -18,7 +18,9 @@ side has its own `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml` and
 `.nvmrc`. Always `cd` into one of them before running `pnpm`, and never assume a
 dependency present on one side exists on the other — that is exactly how the two
 Zod majors coexist. They do not even share the Node major: `frontend/` runs 24,
-`backend/` 22.
+`backend/` 22. The root has no `.nvmrc`: a session started here activates each
+side's Node before running anything there (Rule 9 under `## Exceptions` in each
+subproject's `AGENTS.md`).
 
 ## How the docs are layered
 

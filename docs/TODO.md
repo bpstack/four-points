@@ -327,11 +327,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       estructurado de los eventos de login y errores genéricos que no dejen
       averiguar si un usuario existe.
 - [ ] **Subir el backend a Node 24** — producción va en 22 (Render, 22.23.3) y
-      el frontend ya en 24 (Vercel). Desde f934b4d Render lee `backend/.nvmrc`,
-      no el `.nvmrc` raíz, que ya no usan ni Render ni CI. Cambiar
-      `backend/.nvmrc` y `engines` a `24.x`, y probarlo antes en preview
-      (pdf-parse v1, solver, cron). _Comprobado en los logs de Render y Vercel
-      el 2026-10-12, y en el deploy preview de 72b5d3c el 2026-10-13._
+      el frontend ya en 24 (Vercel). Desde f934b4d Render lee `backend/.nvmrc`;
+      el `.nvmrc` raíz ya no existe (ADR-044). Cambiar `backend/.nvmrc` y
+      `engines` a `24.x`, y probarlo antes en preview (pdf-parse v1, solver,
+      cron). _Comprobado en los logs de Render y Vercel el 2026-10-12, y en el
+      deploy preview de 72b5d3c el 2026-10-13._
 - [ ] **Parking: `SpotType` no coincide con la BD** — en
       `backend/models/parking/index.ts` es
       `standard | large | handicapped | electric`; el `ENUM` de

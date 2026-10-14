@@ -133,6 +133,13 @@ This file also covers the stack, commands, architecture and module docs of
   `docs/SESSION.md` and `docs/DECISIONS.md` in the root, shared with
   `frontend/`. `backend/docs/` is git-ignored (`backend/.gitignore:127`) and is
   not used for them.
+- **Rule 9 — the session starts at the repo root, not here.** One session works
+  on both subprojects, and they run different Node majors (22 here, 24 in
+  `frontend/`), so no inherited Node fits both and the root has no `.nvmrc`.
+  Every Node or `pnpm` command activates this project's version first, from its
+  `.nvmrc`: `eval "$(fnm env --shell bash)" && fnm use && pnpm …` in Bash, or
+  `fnm env | Out-String | Invoke-Expression; fnm use` in PowerShell, both run
+  inside `backend/`.
 
 ## Security
 

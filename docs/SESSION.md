@@ -7,7 +7,7 @@
 Lo que no encaje aquí es una decisión (a `DECISIONS.md`), un hallazgo (a su
 propio fichero) o ruido (se borra).
 
-**Última actualización:** 2026-10-13
+**Última actualización:** 2026-10-14
 
 ---
 
@@ -28,10 +28,12 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 - **Local:** `pnpm setup:local` instala desde cero con admin completo, datos
   ficticios y la base de horarios de la demo (`scheduling-seed.sql`).
 - **Repositorio original:** `four-points-archive`, archivado y privado.
-- **Decisiones:** `DECISIONS.md`, hasta ADR-043.
+- **Decisiones:** `DECISIONS.md`, hasta ADR-044.
 - **Harness:** capa 1 en `backend/AGENTS.md` y `frontend/AGENTS.md`; el
   `AGENTS.md` raíz guarda lo común y los tres niveles se enlazan entre sí
-  (ADR-042, ADR-043).
+  (ADR-042, ADR-043). La sesión se abre en la raíz y activa el Node de cada lado
+  antes de cada comando (ADR-044). CI comprueba el formato de todo el Markdown
+  versionado.
 - **Revisión de OpenCode, cerrada el 2026-10-12:** sus 20 ramas `opencode/*`
   están fusionadas en esta rama (PR #7–#26) y probadas en preview; las
   migraciones `20261011_keep_group_history_on_delete.sql` y

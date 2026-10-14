@@ -972,3 +972,23 @@
   - Copiar en cada nivel lo de los niveles de arriba. Se desincroniza, y la capa
     1 del harness ya repite en cada subproyecto lo que no puede faltar (commits,
     push, Context7).
+
+## ADR-044 — La sesión se abre en la raíz y activa el Node de cada lado
+
+- **Estado:** ✅ aceptada (2026-10-14)
+- **Fecha:** 2026-10-14
+- **Decisión:**
+  - La regla 9 de la capa 1 («una sesión por proyecto») tiene una excepción
+    declarada en `backend/AGENTS.md` y `frontend/AGENTS.md`: la sesión se abre
+    en la raíz del repo y trabaja en los dos lados. Cada comando de Node o
+    `pnpm` activa antes la versión del subproyecto con `fnm use`, que lee su
+    `.nvmrc`.
+  - Se borra el `.nvmrc` raíz (22).
+- **Motivo:** los dos lados no comparten major (22 y 24) y una sesión arrancada
+  en la raíz heredaba el 22 del `.nvmrc` raíz también para `frontend/`; sin
+  `engine-strict`, pnpm solo avisa. Ese `.nvmrc` ya no lo leía nada: Render y CI
+  usan el de cada subproyecto desde f934b4d. `fnm use` por comando se comprobó
+  el 2026-10-14 en Bash y en PowerShell (24 en `frontend/`, 22 en `backend/`).
+- **Rechazado:** abrir una sesión por subproyecto. Las tareas que cruzan el
+  contrato entre los dos lados (tipos, esquemas, JSON duplicado) piden verlos a
+  la vez, y la excepción basta.
