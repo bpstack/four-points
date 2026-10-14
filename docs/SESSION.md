@@ -37,8 +37,11 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 - **Revisión de OpenCode, cerrada el 2026-10-12:** sus 20 ramas `opencode/*`
   están fusionadas en esta rama (PR #7–#26) y probadas en preview; las
   migraciones `20261011_keep_group_history_on_delete.sql` y
-  `20261012_unique_invoice_supplier_number.sql`, aplicadas en Aiven. Aún no
-  están en `main`.
+  `20261012_unique_invoice_supplier_number.sql`, aplicadas en Aiven. En `main`
+  desde el PR #28.
+- **`main` al día con la rama** desde el PR #29 (2026-10-14, merge `47f77b9`):
+  harness en los dos subproyectos, documentos de módulo alineados con el código
+  y Prettier 3.9.9 en los dos lados.
 
 ## ⚠️ Empieza por aquí
 
@@ -58,22 +61,18 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 
 ## Siguiente
 
-1. **PR de esta rama a `main`** con merge commit, y comprobar producción en el
-   navegador (Aiven ya tiene las migraciones). Después, adelantar esta rama a
-   `main` (`git merge --ff-only origin/main`).
+«Después de publicar» de `TODO.md`, por prioridad:
 
-Luego, «Después de publicar» de `TODO.md`, por prioridad:
-
-2. **Rotar las credenciales de producción** (BD, clave JWT, Cloudinary, claves
+1. **Rotar las credenciales de producción** (BD, clave JWT, Cloudinary, claves
    de IA). Ninguna de ellas está en el historial, pero sí la contraseña en claro
    de un usuario de la aplicación (`test-login.js`, commit `8595ec0`): cambiarla
    también. Se hace en los paneles y se comprueba que producción y preview
    siguen funcionando.
-3. **Rastro de cambios en dinero:** ingresos de F&B, pagos y recuentos de caja,
+2. **Rastro de cambios en dinero:** ingresos de F&B, pagos y recuentos de caja,
    cobros de parking.
-4. **Fechas y «hoy» según la zona horaria de cada pieza**, como tarea propia
+3. **Fechas y «hoy» según la zona horaria de cada pieza**, como tarea propia
    (decidido el 2026-10-12).
-5. Las de prioridad media, empezando por las comprobaciones cortas (versión de
+4. Las de prioridad media, empezando por las comprobaciones cortas (versión de
    Node y cron en Render) y el pago automático del día 10, que nunca ha
    funcionado.
 

@@ -18,7 +18,7 @@ hace que alguien reimplemente lo que ya existe.
 
 ## Rama `claude/compassionate-planck-gh6aof`
 
-Última fusión en `main`: 2026-10-05 (PR #4, commit de merge `15a8531`). La rama
+Última fusión en `main`: 2026-10-14 (PR #29, commit de merge `47f77b9`). La rama
 sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ## Después de publicar
