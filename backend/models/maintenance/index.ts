@@ -106,6 +106,9 @@ export interface MaintenanceHistory {
   changed_at: string
   // Campos adicionales (JOINs)
   user_name?: string
+  // Usernames when the change is an assignment (old_value/new_value are user ids)
+  old_value_name?: string
+  new_value_name?: string
 }
 
 // ========================================

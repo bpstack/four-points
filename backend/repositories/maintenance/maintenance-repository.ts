@@ -74,6 +74,8 @@ interface ImageRow extends RowDataPacket {
 }
 
 interface HistoryRow extends RowDataPacket {
+  old_value_name?: string | null
+  new_value_name?: string | null
   id: number
   report_id: string
   action: string
@@ -226,6 +228,8 @@ function parseHistoryRow(row: HistoryRow): MaintenanceHistory {
     changed_at:
       typeof row.changed_at === 'string' ? row.changed_at : new Date(row.changed_at).toISOString(),
     user_name: row.user_name || undefined,
+    old_value_name: row.old_value_name || undefined,
+    new_value_name: row.new_value_name || undefined,
   }
 }
 
@@ -935,9 +939,13 @@ export class MaintenanceRepository {
    */
   static async getHistoryByReportId(reportId: string): Promise<MaintenanceHistory[]> {
     const query = `
-      SELECT h.*, u.username as user_name
+      SELECT h.*, u.username as user_name,
+        ou.username AS old_value_name, nu.username AS new_value_name
       FROM maintenance_history h
       LEFT JOIN users u ON h.changed_by = u.id
+      -- An assignment logs user ids: their names, for the screen
+      LEFT JOIN users ou ON h.field_changed = 'assigned_to' AND ou.id = h.old_value
+      LEFT JOIN users nu ON h.field_changed = 'assigned_to' AND nu.id = h.new_value
       WHERE h.report_id = ?
       ORDER BY h.changed_at DESC
     `
