@@ -27,7 +27,7 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 > carreras, operación, interfaz y calidad. Se trabajan en el repositorio
 > público, sin plazo (ADR-033).
 
-📦 **Errores conocidos admitidos:** 25 puntos que se aceptan y no se arreglan
+📦 **Errores conocidos admitidos:** 26 puntos que se aceptan y no se arreglan
 ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes»
 (ADR-045). Se supervisan; si uno vuelve a ser prioritario, se devuelve aquí.
 `docs/_archive/` solo está en el PC principal: git lo ignora.
@@ -159,20 +159,6 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       (`UPDATE users SET is_active = 0 WHERE username = 'demo'`). `setup:local`
       no la ejecuta (es anterior al baseline); no aplicarla a mano. _Comprobado
       el 2026-10-05._
-- [ ] **Errores que aún llegan sin traducir** — los códigos del backend ya se
-      traducen en el cliente (`app/lib/helpers/errorCodeMessage.ts`; un test
-      exige texto en es y en para cada `ERROR_CODES.X` y cada `code: 'X'`).
-      Quedan: las server actions de blacklist, groups y parking
-      (`app/dashboard/*/actions/`, `app/lib/parking/actions.ts`) lanzan
-      `errorData.error`, que es el código en crudo, y en el servidor no hay
-      `document` para leer el idioma; unas 330 respuestas 4xx/5xx del backend
-      llevan un texto fijo (casi siempre en español) y ningún `code`, así que en
-      inglés se ven en español: scheduling ~135, maintenance ~56, parking ~59
-      (`parking.controller.ts`, `stats.controller.ts` y los 400 de check-out,
-      cancelar y no-show), cashier ~39, checklist ~20 y algunas de fnb, demo y
-      search; el 409 del reinicio de la demo y el subtítulo del login
-      (`login/page.tsx`) también van fijos en español. Ir módulo a módulo
-      (B5.n). _Medido el 2026-10-12._
 - [ ] **Conciliation: el cierre mensual no tiene pantalla ni congela los días**
       — `PATCH /monthly-summary/:year/:month/status` solo existe en la API
       (`useUpdateMonthlySummaryStatus` no lo usa ningún componente), y con el
