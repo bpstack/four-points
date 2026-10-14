@@ -15,6 +15,7 @@ import {
   mergeByTimestamp,
 } from '../../services/activity/activity-access.js'
 import { logger } from '../../config/logger.js'
+import { getTodayMadrid } from '../../config/date-utils.js'
 import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 export class ActivityController {
@@ -81,7 +82,7 @@ export class ActivityController {
 
       const fetchActivity = (src?: ActivitySource) => {
         if (dateFrom || dateTo) {
-          const to = dateTo || new Date().toISOString().slice(0, 10)
+          const to = dateTo || getTodayMadrid()
           let from = dateFrom
           if (!from) {
             const d = new Date(to)

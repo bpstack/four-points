@@ -9,6 +9,7 @@ import {
   UpdateVoucherDTO,
   VoucherFilters,
 } from '../../models/cashier/index.js'
+import { sqlMadridDay } from '../shared/hotel-clock.js'
 
 export class CashierVoucherRepository {
   /**
@@ -51,12 +52,12 @@ export class CashierVoucherRepository {
     }
 
     if (filters.from_date) {
-      query += ' AND DATE(v.created_at) >= ?'
+      query += ` AND ${sqlMadridDay('v.created_at')} >= ?`
       params.push(filters.from_date)
     }
 
     if (filters.to_date) {
-      query += ' AND DATE(v.created_at) <= ?'
+      query += ` AND ${sqlMadridDay('v.created_at')} <= ?`
       params.push(filters.to_date)
     }
 
@@ -115,12 +116,12 @@ export class CashierVoucherRepository {
     }
 
     if (filters.from_date) {
-      query += ' AND DATE(v.created_at) >= ?'
+      query += ` AND ${sqlMadridDay('v.created_at')} >= ?`
       params.push(filters.from_date)
     }
 
     if (filters.to_date) {
-      query += ' AND DATE(v.created_at) <= ?'
+      query += ` AND ${sqlMadridDay('v.created_at')} <= ?`
       params.push(filters.to_date)
     }
 
@@ -429,12 +430,12 @@ export class CashierVoucherRepository {
     const params: (string | number)[] = []
 
     if (fromDate) {
-      query += ' AND DATE(created_at) >= ?'
+      query += ` AND ${sqlMadridDay('created_at')} >= ?`
       params.push(fromDate)
     }
 
     if (toDate) {
-      query += ' AND DATE(created_at) <= ?'
+      query += ` AND ${sqlMadridDay('created_at')} <= ?`
       params.push(toDate)
     }
 

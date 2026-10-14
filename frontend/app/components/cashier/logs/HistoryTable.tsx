@@ -25,6 +25,16 @@ export default function HistoryTable({
 }: HistoryTableProps) {
   const t = useTranslations('cashier')
 
+  // Shift and voucher statuses are stored as codes (open, pending…): show them in words
+  const STATUS_KEYS: Record<string, string> = {
+    open: 'summary.open',
+    closed: 'summary.closed',
+    pending: 'voucher.pending',
+    justified: 'voucher.justified',
+    cancelled: 'voucher.cancelled',
+  }
+  const formatStatusValue = (value: string) => (STATUS_KEYS[value] ? t(STATUS_KEYS[value]) : value)
+
   const getActionBadge = (action: string) => {
     const badges: Record<string, { bg: string; text: string; labelKey: string }> = {
       created: {
@@ -167,12 +177,14 @@ export default function HistoryTable({
                         day: '2-digit',
                         month: '2-digit',
                         year: 'numeric',
+                        timeZone: 'Europe/Madrid',
                       })}
                     </div>
                     <div className="text-[10px] text-fg-subtle">
                       {new Date(log.changed_at).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
                         minute: '2-digit',
+                        timeZone: 'Europe/Madrid',
                       })}
                     </div>
                   </div>
@@ -189,6 +201,7 @@ export default function HistoryTable({
                         {new Date(log.shift_date).toLocaleDateString('es-ES', {
                           day: '2-digit',
                           month: '2-digit',
+                          timeZone: 'Europe/Madrid',
                         })}
                       </div>
                       <div className="text-[10px] text-fg-subtle">
@@ -209,7 +222,9 @@ export default function HistoryTable({
 
                 {/* Campo */}
                 <td className="px-3 py-2 text-[10px] text-fg-muted">
-                  {log.field_changed || <span className="text-fg-subtle">-</span>}
+                  {log.field_changed === 'status'
+                    ? t('summary.status')
+                    : log.field_changed || <span className="text-fg-subtle">-</span>}
                 </td>
 
                 {/* Cambio */}
@@ -218,12 +233,12 @@ export default function HistoryTable({
                     <div className="max-w-[120px]">
                       {log.old_value && (
                         <div className="text-red-600 dark:text-red-400 text-[10px] truncate">
-                          <span className="font-medium">-</span> {log.old_value}
+                          <span className="font-medium">-</span> {formatStatusValue(log.old_value)}
                         </div>
                       )}
                       {log.new_value && (
                         <div className="text-green-600 dark:text-green-400 text-[10px] truncate">
-                          <span className="font-medium">+</span> {log.new_value}
+                          <span className="font-medium">+</span> {formatStatusValue(log.new_value)}
                         </div>
                       )}
                     </div>

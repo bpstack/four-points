@@ -82,4 +82,6 @@ if (environment === 'aiven' && (!config.user || !Number.isInteger(config.port)))
   throw new Error('❌ Faltan AIVEN_DB_USER o AIVEN_DB_PORT en .env')
 }
 
-export const dbConfig = config
+// mysql2 reads and writes DATETIME and DATE in UTC, whatever the machine's zone
+// (ADR-047); config/db.ts sets the MySQL session to UTC too
+export const dbConfig = { ...config, timezone: 'Z' }

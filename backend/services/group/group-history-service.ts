@@ -238,6 +238,11 @@ export class GroupHistoryService {
       return null
     }
 
+    // A date as plain ISO text: JSON.stringify quoted it and the screen split it into characters
+    if (value instanceof Date) {
+      return value.toISOString()
+    }
+
     if (typeof value === 'object') {
       return JSON.stringify(value)
     }

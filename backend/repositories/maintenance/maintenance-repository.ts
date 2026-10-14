@@ -19,7 +19,9 @@ import type {
   HistoryAction,
   AddImageInput,
 } from '../../models/maintenance/index.js'
+import { getNowMadrid } from '../../config/date-utils.js'
 import { likeContains } from '../shared/like.js'
+import { sqlMadridDay } from '../shared/hotel-clock.js'
 
 // ========================================
 // INTERFACES INTERNAS (para tipado de queries)
@@ -72,6 +74,8 @@ interface ImageRow extends RowDataPacket {
 }
 
 interface HistoryRow extends RowDataPacket {
+  old_value_name?: string | null
+  new_value_name?: string | null
   id: number
   report_id: string
   action: string
@@ -103,11 +107,8 @@ export const MAX_REPORT_IMAGES = 5
  * Ejemplo: 120625-001, 120625-002, etc.
  */
 async function generateReportId(): Promise<string> {
-  const now = new Date()
-  const day = String(now.getDate()).padStart(2, '0')
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const year = String(now.getFullYear()).slice(-2)
-  const datePrefix = `${day}${month}${year}`
+  // The hotel day in Madrid: in UTC a report at 00:30 would carry yesterday (ADR-047)
+  const datePrefix = getNowMadrid().format('DDMMYY')
 
   // Buscar el último número del día
   const [rows] = await dbx().query<RowDataPacket[]>(
@@ -227,6 +228,8 @@ function parseHistoryRow(row: HistoryRow): MaintenanceHistory {
     changed_at:
       typeof row.changed_at === 'string' ? row.changed_at : new Date(row.changed_at).toISOString(),
     user_name: row.user_name || undefined,
+    old_value_name: row.old_value_name || undefined,
+    new_value_name: row.new_value_name || undefined,
   }
 }
 
@@ -322,17 +325,17 @@ export class MaintenanceRepository {
 
     // Filtro por fecha específica (single day)
     if (date) {
-      conditions.push(`DATE(r.report_date) = ?`)
+      conditions.push(`${sqlMadridDay('r.report_date')} = ?`)
       whereParams.push(date)
     }
 
     // Filtro por rango de fechas (inclusivo en ambos extremos)
     if (date_from && !date) {
-      conditions.push(`DATE(r.report_date) >= ?`)
+      conditions.push(`${sqlMadridDay('r.report_date')} >= ?`)
       whereParams.push(date_from)
     }
     if (date_to && !date) {
-      conditions.push(`DATE(r.report_date) <= ?`)
+      conditions.push(`${sqlMadridDay('r.report_date')} <= ?`)
       whereParams.push(date_to)
     }
 
@@ -936,9 +939,13 @@ export class MaintenanceRepository {
    */
   static async getHistoryByReportId(reportId: string): Promise<MaintenanceHistory[]> {
     const query = `
-      SELECT h.*, u.username as user_name
+      SELECT h.*, u.username as user_name,
+        ou.username AS old_value_name, nu.username AS new_value_name
       FROM maintenance_history h
       LEFT JOIN users u ON h.changed_by = u.id
+      -- An assignment logs user ids: their names, for the screen
+      LEFT JOIN users ou ON h.field_changed = 'assigned_to' AND ou.id = h.old_value
+      LEFT JOIN users nu ON h.field_changed = 'assigned_to' AND nu.id = h.new_value
       WHERE h.report_id = ?
       ORDER BY h.changed_at DESC
     `

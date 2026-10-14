@@ -4,6 +4,7 @@ import db from '../../config/db.js'
 import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
 import { ResultSetHeader, RowDataPacket } from 'mysql2'
 import { CashierHistory, CreateHistoryDTO, HistoryFilters } from '../../models/cashier/index.js'
+import { sqlMadridDay } from '../shared/hotel-clock.js'
 
 export class CashierHistoryRepository {
   /**
@@ -94,12 +95,12 @@ export class CashierHistoryRepository {
     }
 
     if (filters.from_date) {
-      query += ' AND DATE(changed_at) >= ?'
+      query += ` AND ${sqlMadridDay('changed_at')} >= ?`
       params.push(filters.from_date)
     }
 
     if (filters.to_date) {
-      query += ' AND DATE(changed_at) <= ?'
+      query += ` AND ${sqlMadridDay('changed_at')} <= ?`
       params.push(filters.to_date)
     }
 
@@ -148,12 +149,12 @@ export class CashierHistoryRepository {
     }
 
     if (filters.from_date) {
-      query += ' AND DATE(changed_at) >= ?'
+      query += ` AND ${sqlMadridDay('changed_at')} >= ?`
       params.push(filters.from_date)
     }
 
     if (filters.to_date) {
-      query += ' AND DATE(changed_at) <= ?'
+      query += ` AND ${sqlMadridDay('changed_at')} <= ?`
       params.push(filters.to_date)
     }
 

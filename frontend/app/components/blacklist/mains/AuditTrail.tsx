@@ -219,6 +219,7 @@ function formatValue(value: unknown, t: any): string {
     try {
       const date = new Date(value)
       return new Intl.DateTimeFormat('es-ES', {
+        timeZone: 'Europe/Madrid',
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',

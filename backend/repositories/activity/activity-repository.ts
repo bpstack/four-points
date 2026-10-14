@@ -6,6 +6,7 @@
 
 import db from '../../config/db.js'
 import { RowDataPacket } from 'mysql2'
+import { sqlMadridDay } from '../shared/hotel-clock.js'
 
 // ========================================
 // TYPES
@@ -235,7 +236,7 @@ export class ActivityRepository {
           CAST(ch.shift_id AS CHAR) COLLATE utf8mb4_0900_ai_ci as record_id
         FROM cashier_history ch
         LEFT JOIN users u1 ON ch.changed_by = u1.id
-        WHERE DATE(ch.changed_at) = ?
+        WHERE ${sqlMadridDay('ch.changed_at')} = ?
         
         UNION ALL
         
@@ -249,7 +250,7 @@ export class ActivityRepository {
           CAST(gh.group_id AS CHAR) COLLATE utf8mb4_0900_ai_ci as record_id
         FROM group_history gh
         LEFT JOIN users u2 ON gh.changed_by = u2.id
-        WHERE DATE(gh.changed_at) = ?
+        WHERE ${sqlMadridDay('gh.changed_at')} = ?
         
         UNION ALL
         
@@ -263,7 +264,7 @@ export class ActivityRepository {
           CAST(lh.logbook_id AS CHAR) COLLATE utf8mb4_0900_ai_ci as record_id
         FROM logbook_history lh
         LEFT JOIN users u3 ON lh.editor_id = u3.id
-        WHERE DATE(lh.created_at) = ?
+        WHERE ${sqlMadridDay('lh.created_at')} = ?
         
         UNION ALL
         
@@ -277,7 +278,7 @@ export class ActivityRepository {
           mh.report_id COLLATE utf8mb4_0900_ai_ci as record_id
         FROM maintenance_history mh
         LEFT JOIN users u4 ON mh.changed_by = u4.id
-        WHERE DATE(mh.changed_at) = ?
+        WHERE ${sqlMadridDay('mh.changed_at')} = ?
       ) AS combined
       ORDER BY timestamp DESC
       LIMIT ?

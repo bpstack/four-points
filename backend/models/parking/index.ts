@@ -300,10 +300,11 @@ export interface FormattedOperator {
 }
 
 export interface FormattedSchedule {
-  expected_checkin: Date
-  expected_checkout: Date
-  actual_checkin: Date | null
-  actual_checkout: Date | null
+  // Hotel wall-clock times without Z: YYYY-MM-DDTHH:mm:ss (ADR-047)
+  expected_checkin: string
+  expected_checkout: string
+  actual_checkin: string | null
+  actual_checkout: string | null
   planned_days: number
   actual_days: number | null
 }
@@ -356,8 +357,8 @@ export interface FormattedOverdueBooking {
     owner: string | null
     model: string | null
   }
-  actual_checkin: Date
-  expected_checkout: Date
+  actual_checkin: string
+  expected_checkout: string
   horas_retraso: number
   status: BookingStatus
   notes: string | null
@@ -413,8 +414,8 @@ export interface FormattedPendingCheckin {
     model: string | null
   } | null
   schedule: {
-    expected_checkin: Date
-    expected_checkout: Date
+    expected_checkin: string
+    expected_checkout: string
     days: number
   }
   booking_info: {
@@ -438,9 +439,9 @@ export interface FormattedPendingCheckout {
     model: string | null
   } | null
   schedule: {
-    expected_checkin: Date
-    actual_checkin: Date | null
-    expected_checkout: Date
+    expected_checkin: string
+    actual_checkin: string | null
+    expected_checkout: string
     planned_days: number
     actual_days: number
     is_overdue: boolean

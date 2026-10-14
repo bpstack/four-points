@@ -10,6 +10,7 @@ import type {
   CreatedLogbook,
   ResultSetHeader,
 } from '../../models/logbook/index.js'
+import { sqlMadridDay } from '../shared/hotel-clock.js'
 
 // ============================================
 // PAGINATION DEFAULTS
@@ -133,12 +134,12 @@ export async function getLogbooksFiltered(
   }
 
   if (options.date_from) {
-    conditions.push('(l.date >= ? OR (l.date IS NULL AND DATE(l.created_at) >= ?))')
+    conditions.push(`(l.date >= ? OR (l.date IS NULL AND ${sqlMadridDay('l.created_at')} >= ?))`)
     params.push(options.date_from, options.date_from)
   }
 
   if (options.date_to) {
-    conditions.push('(l.date <= ? OR (l.date IS NULL AND DATE(l.created_at) <= ?))')
+    conditions.push(`(l.date <= ? OR (l.date IS NULL AND ${sqlMadridDay('l.created_at')} <= ?))`)
     params.push(options.date_to, options.date_to)
   }
 
@@ -249,7 +250,7 @@ export async function getLogbooksByDay(
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
     LEFT JOIN departments d ON l.department_id = d.id
-    WHERE (l.date = ? OR (l.date IS NULL AND DATE(l.created_at) = ?))
+    WHERE (l.date = ? OR (l.date IS NULL AND ${sqlMadridDay('l.created_at')} = ?))
       AND l.deleted_at IS NULL
     ORDER BY l.created_at DESC
     LIMIT ? OFFSET ?`,

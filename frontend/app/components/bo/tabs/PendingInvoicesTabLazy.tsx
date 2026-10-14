@@ -11,7 +11,7 @@
 
 import React, { useMemo, useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { formatDateDisplayShort } from '@/app/lib/helpers/date'
+import { formatDateDisplayShort, getMadridDate } from '@/app/lib/helpers/date'
 import {
   FiSearch,
   FiPlus,
@@ -398,7 +398,7 @@ export function PendingInvoicesTabLazy({
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+      const timestamp = getMadridDate().replace(/-/g, '')
       a.download = `facturas_validadas_${timestamp}.zip`
       document.body.appendChild(a)
       a.click()

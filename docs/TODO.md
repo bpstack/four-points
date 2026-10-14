@@ -18,7 +18,7 @@ hace que alguien reimplemente lo que ya existe.
 
 ## Rama `claude/compassionate-planck-gh6aof`
 
-Última fusión en `main`: 2026-10-14 (PR #29, commit de merge `47f77b9`). La rama
+Última fusión en `main`: 2026-10-14 (PR #30, commit de merge `9b33943`). La rama
 sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ## Después de publicar
@@ -58,47 +58,12 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       reales — Aiven hace copias automáticas y existe
       `backend/db-mysql/backup/backup.ps1`, pero no consta que se haya probado a
       restaurar ninguna. Del plan archivado (`Global-Plan.md`, H3-8).
-- [ ] **Cron en producción: desplegar y comprobarlo en Render** — en Render no
-      se ejecutaba ninguna tarea programada (7 días de logs sin una, 2026-10-14:
-      el plan gratuito duerme el backend) y el pago del día 10 fallaba por
-      `system-cron`. Arreglado en la rama `opencode-tasks`: se ponen al día al
-      arrancar (ADR-046). `20261014_cron_catch_up.sql` ya está en Aiven
-      (2026-10-14). Falta desplegar y ver en los logs de Render el
-      `[CRON] Ejecutando` de cada tarea y la tabla `cron_job_runs` con sus
-      periodos. El primer arranque paga las facturas validadas de septiembre.
 - [ ] **La retención de mensajes borra las conversaciones vacías** — el evento
       MySQL `cleanup_old_messages` borra cada día, además de los mensajes de más
       de 90 días, toda conversación sin mensajes, incluidas las recién creadas y
       aún sin estrenar. _Comprobado el 2026-09-28 en local y Aiven:
       `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
       Aiven: 2026-09-27)._
-- [ ] **Fechas y «hoy» dependen de la zona horaria de cada pieza** — navegador
-      en Madrid, Node en la del proceso (Madrid en local; Render sin comprobar,
-      UTC si no tiene `TZ`) y MySQL en la suya (Madrid en local; Aiven en UTC,
-      `time_zone=SYSTEM`, comprobado el 2026-09-28). No son relojes
-      desincronizados: - El pool (`config/db.ts`) no fija `timezone` ni
-      `dateStrings`: una columna `DATE` llega como instante a medianoche de
-      Node. Con Node en Madrid, el 30/09 viaja como `2026-09-29T22:00:00Z`, y
-      quien lo corta por la `T` se queda con el 29. Así, en local, cada edición
-      de una factura le resta un día a sus fechas
-      (`InvoiceFormModal.tsx:83-87`). Con Node en UTC sale bien. - Si Node y
-      MySQL no están en la misma zona, los `DATETIME` se desplazan: con Node en
-      UTC contra la MySQL local, `NOW()` sale 2 h movido (p. ej.
-      `pnpm dev:aiven` desde un equipo en Madrid). - «Hoy» en UTC está mal entre
-      las 00:00 y las 02:00 de Madrid: `toISOString()` en 26 sitios del frontend
-      y 6 del backend, `CURDATE()`/`NOW()` en Aiven (19 consultas con
-      `CURDATE()`: filtros de parking, código `PK-AAAAMMDD` del trigger,
-      `CURRENT_TIMESTAMP`) y el identificador `DDMMAA-NNN` de Maintenance (fecha
-      de Node). - 15 sitios del frontend cortan por la `T` fechas del servidor
-      (grupos, lista negra, parking, horarios, checklist, caja, backoffice).
-
-      Plan: `DATE` como texto `AAAA-MM-DD` (`dateStrings`), «hoy» siempre en
-      Madrid (un helper en el frontend, `getTodayMadrid` en el backend) y zona
-      fija entre Node y MySQL. Antes: mirar si Render tiene `TZ` y si alguna
-      fecha de Aiven se ha movido ya por ediciones. Tarea propia, decidida el
-      2026-10-12. _Medido el 2026-10-12 contra la BD local con Node en Madrid y
-      en UTC._
-
 - [ ] **Logbook: papelera e historial solo ocultos en la pantalla** — el backend
       da `/trashed`, `include_trashed`, el historial y los comentarios de
       entradas borradas a cualquier rol con acceso. _Según la revisión

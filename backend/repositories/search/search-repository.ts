@@ -7,6 +7,7 @@
 import db from '../../config/db.js'
 import type { RowDataPacket } from 'mysql2'
 import { type SearchModule } from '../../services/search/search-access.js'
+import { toHotelTime } from '../../config/date-utils.js'
 import { likeContains } from '../shared/like.js'
 
 // ========================================
@@ -133,8 +134,8 @@ async function searchParking(query: string): Promise<ParkingSearchResult[]> {
     plate_number: row.plate_number,
     owner_name: row.owner_name,
     status: row.status,
-    expected_checkin: row.expected_checkin,
-    expected_checkout: row.expected_checkout,
+    expected_checkin: toHotelTime(row.expected_checkin),
+    expected_checkout: toHotelTime(row.expected_checkout),
   }))
 }
 

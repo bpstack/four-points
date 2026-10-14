@@ -21,6 +21,7 @@ import { applyVat } from '@/app/lib/backoffice/types'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import toast from 'react-hot-toast'
+import { getMadridDate } from '@/app/lib/helpers/date'
 
 interface InvoiceFormModalProps {
   isOpen: boolean
@@ -59,8 +60,8 @@ export function InvoiceFormModal({
     amount_without_vat: 0,
     amount_with_vat: 0,
     vat_percentage: 21,
-    invoice_date: new Date().toISOString().split('T')[0],
-    received_date: new Date().toISOString().split('T')[0],
+    invoice_date: getMadridDate(),
+    received_date: getMadridDate(),
     billing_period_start: undefined,
     billing_period_end: undefined,
     due_date: undefined,
@@ -97,8 +98,8 @@ export function InvoiceFormModal({
           amount_without_vat: 0,
           amount_with_vat: 0,
           vat_percentage: 21,
-          invoice_date: new Date().toISOString().split('T')[0],
-          received_date: new Date().toISOString().split('T')[0],
+          invoice_date: getMadridDate(),
+          received_date: getMadridDate(),
           billing_period_start: undefined,
           billing_period_end: undefined,
           due_date: undefined,

@@ -126,6 +126,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Europe/Madrid',
     })
   }
 
@@ -141,11 +142,18 @@ export function HistoryItem({ record }: HistoryItemProps) {
       .join(' ')
   }
 
-  const formatValue = (value: string, field?: string) => {
+  const formatValue = (rawValue: string, field?: string) => {
     // Check for null/undefined
-    if (value === null || value === undefined || value === 'null' || value === 'undefined') {
+    if (
+      rawValue === null ||
+      rawValue === undefined ||
+      rawValue === 'null' ||
+      rawValue === 'undefined'
+    ) {
       return '—'
     }
+    // Rows written before 2026-10-14 keep dates in quotes ("2026-10-24T22:00:00.000Z")
+    const value = rawValue.replace(/^"(.*)"$/, '$1')
 
     // Check if it's a date field
     if (field && field.includes('date') && value && value.match(/^\d{4}-\d{2}-\d{2}/)) {
@@ -153,6 +161,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
+        timeZone: 'Europe/Madrid',
       })
     }
 
@@ -185,6 +194,10 @@ export function HistoryItem({ record }: HistoryItemProps) {
     try {
       const oldObj = oldValue ? JSON.parse(oldValue) : {}
       const newObj = newValue ? JSON.parse(newValue) : {}
+      // Only whole records are compared field by field; a single value (a number,
+      // a quoted date) is shown as it is below
+      const isRecord = (v: unknown) => typeof v === 'object' && v !== null && !Array.isArray(v)
+      if (!isRecord(oldObj) || !isRecord(newObj)) return null
 
       // Find changed fields
       const changes: Array<{ field: string; oldVal: unknown; newVal: unknown }> = []

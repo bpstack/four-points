@@ -12,6 +12,7 @@ import {
   recentHistoryQuerySchema,
   validationError,
 } from '../../validations/cashier/cashier-validation.js'
+import { sqlMadridDay } from '../../repositories/shared/hotel-clock.js'
 
 export class CashierHistoryController {
   /**
@@ -94,8 +95,8 @@ export class CashierHistoryController {
           COUNT(*) as count
         FROM cashier_history
         WHERE 1=1
-          ${from_date ? 'AND DATE(changed_at) >= ?' : ''}
-          ${to_date ? 'AND DATE(changed_at) <= ?' : ''}
+          ${from_date ? `AND ${sqlMadridDay('changed_at')} >= ?` : ''}
+          ${to_date ? `AND ${sqlMadridDay('changed_at')} <= ?` : ''}
         GROUP BY action
         ORDER BY count DESC
       `
@@ -113,8 +114,8 @@ export class CashierHistoryController {
           COUNT(*) as actions_count
         FROM cashier_history
         WHERE changed_by IS NOT NULL
-          ${from_date ? 'AND DATE(changed_at) >= ?' : ''}
-          ${to_date ? 'AND DATE(changed_at) <= ?' : ''}
+          ${from_date ? `AND ${sqlMadridDay('changed_at')} >= ?` : ''}
+          ${to_date ? `AND ${sqlMadridDay('changed_at')} <= ?` : ''}
         GROUP BY changed_by
         ORDER BY actions_count DESC
         LIMIT 10

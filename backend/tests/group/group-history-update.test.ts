@@ -83,4 +83,19 @@ describe('GroupHistoryService.logGroupUpdated', () => {
       })
     )
   })
+
+  it('stores a changed date as plain ISO text, not quoted JSON', async () => {
+    const oldData = { arrival_date: new Date('2026-10-24T00:00:00.000Z') }
+    const newData = { arrival_date: new Date('2026-10-26T00:00:00.000Z') }
+
+    await GroupHistoryService.logGroupUpdated(1, 'user1', oldData, newData)
+
+    expect(GroupHistoryRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        field_changed: 'arrival_date',
+        old_value: '2026-10-24T00:00:00.000Z',
+        new_value: '2026-10-26T00:00:00.000Z',
+      })
+    )
+  })
 })

@@ -8,6 +8,7 @@ import {
   purgeOldEventLogs,
 } from '../checklist/checklist.service.js'
 import { logger } from '../../config/logger.js'
+import { getNowMadrid } from '../../config/date-utils.js'
 import { extendAvailability } from '../../repositories/parking/parking.repository.js'
 import { claimRun, finishRun } from '../../repositories/cron/cron-job-runs-repository.js'
 import {
@@ -208,15 +209,14 @@ export class CronService {
     const startTime = Date.now()
 
     // Calculate previous month if not specified
-    const now = new Date()
     let year = targetYear
     let month = targetMonth
 
     if (!year || !month) {
-      // Get previous month
-      const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-      year = previousMonth.getFullYear()
-      month = previousMonth.getMonth() + 1 // getMonth() is 0-indexed
+      // The previous month in Madrid, not in UTC (ADR-047)
+      const previousMonth = getNowMadrid().subtract(1, 'month')
+      year = previousMonth.year()
+      month = previousMonth.month() + 1
     }
 
     const executingUserId = userId || this.SYSTEM_USER_ID
@@ -287,14 +287,14 @@ export class CronService {
     count: number
     total_amount: number
   }> {
-    const now = new Date()
     let year = targetYear
     let month = targetMonth
 
     if (!year || !month) {
-      const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-      year = previousMonth.getFullYear()
-      month = previousMonth.getMonth() + 1
+      // The previous month in Madrid, not in UTC (ADR-047)
+      const previousMonth = getNowMadrid().subtract(1, 'month')
+      year = previousMonth.year()
+      month = previousMonth.month() + 1
     }
 
     const preview = await BackofficeRepository.getValidatedInvoicesCountByMonth(year, month)

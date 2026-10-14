@@ -7,6 +7,7 @@
 import db from '../../config/db.js'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
 import { likeContains } from '../shared/like.js'
+import { sqlMadridDay } from '../shared/hotel-clock.js'
 
 // ========================================
 // TYPES
@@ -133,12 +134,12 @@ export class DemoActivityRepository {
     }
 
     if (filters?.startDate) {
-      whereClause += ' AND DATE(timestamp) >= ?'
+      whereClause += ` AND ${sqlMadridDay('timestamp')} >= ?`
       params.push(filters.startDate)
     }
 
     if (filters?.endDate) {
-      whereClause += ' AND DATE(timestamp) <= ?'
+      whereClause += ` AND ${sqlMadridDay('timestamp')} <= ?`
       params.push(filters.endDate)
     }
 
@@ -213,10 +214,10 @@ export class DemoActivityRepository {
 
     // Activity by day
     const [daysResult] = await db.query<DayCountRow[]>(
-      `SELECT DATE(timestamp) as date, COUNT(*) as count 
+      `SELECT ${sqlMadridDay('timestamp')} as date, COUNT(*) as count 
        FROM demo_activity_log 
        WHERE timestamp >= DATE_SUB(NOW(), INTERVAL ? DAY)
-       GROUP BY DATE(timestamp) 
+       GROUP BY ${sqlMadridDay('timestamp')} 
        ORDER BY date DESC`,
       [days]
     )

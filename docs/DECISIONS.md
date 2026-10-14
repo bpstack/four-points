@@ -1040,3 +1040,43 @@
     de 2026 (periodo `2026-10`).
   - La migración tiene que estar en Aiven antes del despliegue; sin la tabla,
     cada tarea anota el error en el log y no se ejecuta.
+
+## ADR-047 — El backend corre en UTC; el «hoy» y la hora del hotel, en Madrid
+
+- **Estado:** ✅ aceptada (2026-10-14)
+- **Fecha:** 2026-10-14
+- **Decisión:** tres reglas, con una única fuente en `config/date-utils.ts` y
+  `repositories/shared/hotel-clock.ts`.
+  - **Instantes en UTC:** el backend fija `TZ=UTC` al arrancar
+    (`config/timezone.ts`, primer import de `index.ts`), `mysql2` usa
+    `timezone: 'Z'` y cada sesión de MySQL `time_zone = '+00:00'`. `created_at`,
+    `updated_at`, `changed_at`… son instantes UTC y el navegador los muestra en
+    su hora.
+  - **«Hoy» en Madrid:** se calcula en Node (`getTodayMadrid`, `sqlHotelToday`,
+    `sqlHotelNow`) en lugar de `CURDATE()`, `NOW()` o `toISOString()`; en el
+    frontend, `getMadridDate()`. Para saber el día de Madrid de un instante
+    guardado, `sqlMadridDay(col)` (`CONVERT_TZ` a `Europe/Madrid`, que Aiven
+    tiene cargado; sin zonas con nombre recurre a la fecha UTC). El trigger del
+    código de parking hace lo mismo.
+  - **Horas de parking = reloj del hotel:** la entrada y salida previstas y
+    reales se guardan tal como se escriben (`12:00` es mediodía en Madrid), se
+    leen con `parseHotelTime` y la API las devuelve sin `Z` (`toHotelTime`), así
+    que el navegador las lee como hora local.
+- **Motivo:** Render y Aiven estaban en UTC, pero el portátil y el MySQL local
+  en hora de Madrid: el mismo código daba otra fecha según la máquina. En
+  producción, entre las 00:00 y las 02:00 de Madrid, `CURDATE()` y
+  `toISOString()` daban todavía el día anterior, y `DATE(col)` ponía en el día
+  anterior lo hecho a esas horas (historial de caja, actividad…). Parking
+  guardaba la hora escrita pero la devolvía como UTC: las pantallas la mostraban
+  2 horas tarde y cada edición la movía otras 2. Se descartó devolver las `DATE`
+  como texto (`dateStrings`): cambia la forma de los datos en decenas de sitios
+  para el mismo resultado. Se descartó pasar parking a UTC con una migración: no
+  se puede distinguir qué filas escribió el usuario y cuáles el servidor.
+- **Consecuencias:**
+  - Local se comporta como producción; en producción no cambia la forma de
+    ningún dato salvo las horas de parking, que llegan sin `Z`.
+  - Los `DATETIME` locales escritos antes con hora de Madrid se ven 2 horas
+    desplazados, y en local `sqlMadridDay` usa la fecha UTC (datos de prueba).
+  - Queda con `CURDATE()` la vista `v_bo_suppliers_stats` (total del año en
+    curso): solo falla la primera hora del 1 de enero.
+  - Los tests corren en UTC en cualquier máquina (`vitest.config.ts`).

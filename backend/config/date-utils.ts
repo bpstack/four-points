@@ -74,6 +74,27 @@ export const getLastDayOfMonth = (year: number, month: number): string => {
     .format('YYYY-MM-DD')
 }
 
+// ── Hotel wall-clock times (ADR-047) ─────────────────────────────────────────
+// Parking check-in and check-out times are the hotel's clock: "12:00" is noon in
+// Madrid, stored as 12:00:00. mysql2 reads such a DATETIME as a Date whose UTC
+// fields are the stored value, so these helpers never go through the local zone.
+
+/** The hotel's current wall-clock time, as a Date to store in such a column */
+export const getHotelNowDate = (): Date =>
+  new Date(`${getNowMadrid().format('YYYY-MM-DDTHH:mm:ss')}Z`)
+
+/** A wall-clock time typed by the user ('YYYY-MM-DD HH:mm' or 'YYYY-MM-DDTHH:mm'), as stored */
+export const parseHotelTime = (value: string): Date => dayjs.utc(value).toDate()
+
+/** A stored wall-clock time for the API: no Z, so the browser reads it as local time */
+export function toHotelTime(value: Date | string): string
+export function toHotelTime(value: Date | string | null | undefined): string | null
+export function toHotelTime(value: Date | string | null | undefined): string | null {
+  if (value === null || value === undefined) return null
+  const date = value instanceof Date ? value : parseHotelTime(value)
+  return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 19)
+}
+
 export default {
   getTodayMadrid,
   getNowMadrid,

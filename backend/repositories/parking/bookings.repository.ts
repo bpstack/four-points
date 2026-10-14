@@ -20,6 +20,8 @@ import type {
   BookingStatus,
 } from '../../models/parking/index.js'
 import { likeContains } from '../shared/like.js'
+import { sqlHotelNow, sqlHotelToday } from '../shared/hotel-clock.js'
+import { getHotelNowDate, toHotelTime } from '../../config/date-utils.js'
 
 interface CountRow extends RowDataPacket {
   total: number
@@ -202,7 +204,7 @@ class ParkingBookingsRepository {
           WHEN b.actual_checkin IS NOT NULL AND b.actual_checkout IS NOT NULL 
           THEN DATEDIFF(DATE(b.actual_checkout), DATE(b.actual_checkin))
           WHEN b.actual_checkin IS NOT NULL 
-          THEN DATEDIFF(CURDATE(), DATE(b.actual_checkin))
+          THEN DATEDIFF(${sqlHotelToday()}, DATE(b.actual_checkin))
           ELSE NULL
         END AS actual_days
       FROM parking_bookings b
@@ -279,7 +281,7 @@ class ParkingBookingsRepository {
           WHEN b.actual_checkin IS NOT NULL AND b.actual_checkout IS NOT NULL 
           THEN DATEDIFF(DATE(b.actual_checkout), DATE(b.actual_checkin))
           WHEN b.actual_checkin IS NOT NULL 
-          THEN DATEDIFF(CURDATE(), DATE(b.actual_checkin))
+          THEN DATEDIFF(${sqlHotelToday()}, DATE(b.actual_checkin))
           ELSE NULL
         END AS actual_days
       FROM parking_bookings b
@@ -384,7 +386,10 @@ class ParkingBookingsRepository {
   // ============================================
   // CHECK-IN
   // ============================================
-  async checkIn(id: number, actual_checkin: Date = new Date()): Promise<FormattedBooking | null> {
+  async checkIn(
+    id: number,
+    actual_checkin: Date = getHotelNowDate()
+  ): Promise<FormattedBooking | null> {
     const connection = await pool.getConnection()
 
     try {
@@ -414,7 +419,7 @@ class ParkingBookingsRepository {
         WHERE spot_id = ? 
           AND id != ? 
           AND status = 'checked_in' 
-          AND (actual_checkout IS NULL OR actual_checkout > NOW())
+          AND (actual_checkout IS NULL OR actual_checkout > ${sqlHotelNow()})
         FOR SHARE`,
         [booking[0].spot_id, id]
       )
@@ -444,7 +449,7 @@ class ParkingBookingsRepository {
   // ============================================
   async checkOut(id: number, checkoutData: CheckoutDTO): Promise<FormattedBooking | null> {
     const {
-      actual_checkout = new Date(),
+      actual_checkout = getHotelNowDate(),
       payment_amount = null,
       payment_method = null,
       payment_reference = null,
@@ -777,7 +782,7 @@ class ParkingBookingsRepository {
     switch (quickFilter) {
       case 'arrivals_pending':
         // Llegadas en espera: reserved + entrada hoy
-        whereClause = `WHERE b.status = 'reserved' AND DATE(b.expected_checkin) = CURDATE()`
+        whereClause = `WHERE b.status = 'reserved' AND DATE(b.expected_checkin) = ${sqlHotelToday()}`
         break
 
       case 'arrivals_inside':
@@ -789,25 +794,25 @@ class ParkingBookingsRepository {
         // Total llegadas: reserved entrada hoy + checked_in
         whereClause = `WHERE (
           b.status = 'checked_in' 
-          OR (b.status = 'reserved' AND DATE(b.expected_checkin) = CURDATE())
+          OR (b.status = 'reserved' AND DATE(b.expected_checkin) = ${sqlHotelToday()})
         )`
         break
 
       case 'departures_pending':
         // Salidas en espera: checked_in + salida hoy
-        whereClause = `WHERE b.status = 'checked_in' AND DATE(b.expected_checkout) = CURDATE()`
+        whereClause = `WHERE b.status = 'checked_in' AND DATE(b.expected_checkout) = ${sqlHotelToday()}`
         break
 
       case 'departures_completed':
         // Completadas hoy (por fecha de checkout real)
-        whereClause = `WHERE b.status = 'completed' AND DATE(b.actual_checkout) = CURDATE()`
+        whereClause = `WHERE b.status = 'completed' AND DATE(b.actual_checkout) = ${sqlHotelToday()}`
         break
 
       case 'departures_total':
         // Total salidas: checked_in salida hoy + completed hoy
         whereClause = `WHERE (
-          (b.status = 'checked_in' AND DATE(b.expected_checkout) = CURDATE())
-          OR (b.status = 'completed' AND DATE(b.actual_checkout) = CURDATE())
+          (b.status = 'checked_in' AND DATE(b.expected_checkout) = ${sqlHotelToday()})
+          OR (b.status = 'completed' AND DATE(b.actual_checkout) = ${sqlHotelToday()})
         )`
         break
 
@@ -866,7 +871,7 @@ class ParkingBookingsRepository {
           WHEN b.actual_checkin IS NOT NULL AND b.actual_checkout IS NOT NULL 
           THEN DATEDIFF(DATE(b.actual_checkout), DATE(b.actual_checkin))
           WHEN b.actual_checkin IS NOT NULL 
-          THEN DATEDIFF(CURDATE(), DATE(b.actual_checkin))
+          THEN DATEDIFF(${sqlHotelToday()}, DATE(b.actual_checkin))
           ELSE NULL
         END AS actual_days
       FROM parking_bookings b
@@ -982,7 +987,7 @@ class ParkingBookingsRepository {
           WHEN b.actual_checkin IS NOT NULL AND b.actual_checkout IS NOT NULL 
           THEN DATEDIFF(DATE(b.actual_checkout), DATE(b.actual_checkin))
           WHEN b.actual_checkin IS NOT NULL 
-          THEN DATEDIFF(CURDATE(), DATE(b.actual_checkin))
+          THEN DATEDIFF(${sqlHotelToday()}, DATE(b.actual_checkin))
           ELSE NULL
         END AS actual_days
       FROM parking_bookings b
@@ -1028,7 +1033,7 @@ class ParkingBookingsRepository {
       b.actual_checkin,
       b.expected_checkout,
       b.status,
-      TIMESTAMPDIFF(HOUR, b.expected_checkout, NOW()) AS horas_retraso,
+      TIMESTAMPDIFF(HOUR, b.expected_checkout, ${sqlHotelNow()}) AS horas_retraso,
       b.notes,
       b.created_at,
       b.updated_at
@@ -1037,7 +1042,7 @@ class ParkingBookingsRepository {
     LEFT JOIN parking_vehicles v ON b.vehicle_id = v.id
     WHERE b.status = 'checked_in'
       AND b.actual_checkout IS NULL
-      AND b.expected_checkout < NOW()
+      AND b.expected_checkout < ${sqlHotelNow()}
     ORDER BY b.expected_checkout ASC
   `
 
@@ -1077,10 +1082,10 @@ class ParkingBookingsRepository {
           }
         : null,
       schedule: {
-        expected_checkin: row.expected_checkin,
-        expected_checkout: row.expected_checkout,
-        actual_checkin: row.actual_checkin,
-        actual_checkout: row.actual_checkout,
+        expected_checkin: toHotelTime(row.expected_checkin),
+        expected_checkout: toHotelTime(row.expected_checkout),
+        actual_checkin: toHotelTime(row.actual_checkin),
+        actual_checkout: toHotelTime(row.actual_checkout),
         planned_days: row.planned_days,
         actual_days: row.actual_days,
       },
@@ -1139,8 +1144,8 @@ class ParkingBookingsRepository {
         owner: row.owner_name,
         model: row.vehicle_model,
       },
-      actual_checkin: row.actual_checkin,
-      expected_checkout: row.expected_checkout,
+      actual_checkin: toHotelTime(row.actual_checkin),
+      expected_checkout: toHotelTime(row.expected_checkout),
       horas_retraso: row.horas_retraso,
       status: row.status,
       notes: row.notes,

@@ -26,5 +26,7 @@ export default defineConfig({
       include: ['services/scheduling/**/*.ts'],
     },
     testTimeout: 10000,
+    // The backend runs in UTC everywhere (ADR-047): tests too, on any machine
+    env: { TZ: 'UTC' },
   },
 })
