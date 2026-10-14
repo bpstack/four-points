@@ -68,13 +68,13 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
    de un usuario de la aplicación (`test-login.js`, commit `8595ec0`): cambiarla
    también. Se hace en los paneles y se comprueba que producción y preview
    siguen funcionando.
-2. **Rastro de cambios en dinero:** ingresos de F&B, pagos y recuentos de caja,
-   cobros de parking.
-3. **Fechas y «hoy» según la zona horaria de cada pieza**, como tarea propia
+2. **Fechas y «hoy» según la zona horaria de cada pieza**, como tarea propia
    (decidido el 2026-10-12).
-4. Las de prioridad media, empezando por las comprobaciones cortas (versión de
-   Node y cron en Render) y el pago automático del día 10, que nunca ha
-   funcionado.
+3. Las de prioridad media, empezando por las comprobaciones cortas (cron en
+   Render) y el pago automático del día 10, que nunca ha funcionado.
+
+Los errores conocidos que se aceptan sin arreglarlos ahora están en
+`docs/_archive/TODO.md` (ADR-045).
 
 ## Esperando decisión
 

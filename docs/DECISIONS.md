@@ -992,3 +992,22 @@
 - **Rechazado:** abrir una sesión por subproyecto. Las tareas que cruzan el
   contrato entre los dos lados (tipos, esquemas, JSON duplicado) piden verlos a
   la vez, y la excepción basta.
+
+## ADR-045 — Los errores conocidos que no se arreglan ahora salen de `TODO.md`
+
+- **Estado:** ✅ aceptada (2026-10-14)
+- **Fecha:** 2026-10-14
+- **Decisión:** 25 puntos de `TODO.md` se dan por admitidos y no se arreglan
+  ahora: el rastro de cambios en dinero (F&B, caja, parking), carreras y
+  transacciones, el flujo de estados de Maintenance, las reglas duplicadas de
+  Scheduling, Sentry, Cloudflare Access, la subida a Node 24 y las ideas sin
+  plazo. Se mueven, con su texto y su prioridad, al apartado «Errores conocidos
+  pendientes» de `docs/_archive/TODO.md`; `TODO.md` deja una línea que apunta
+  allí.
+- **Motivo:** decisión del propietario, para que `TODO.md` muestre solo lo que
+  se va a trabajar. Siguen anotados para supervisarlos y recuperarlos si alguno
+  vuelve a ser prioritario.
+- **Consecuencias:**
+  - `docs/_archive/` lo ignora git y solo está en el PC principal: desde los
+    otros equipos esos puntos no se ven.
+  - Los puntos se quitaron del `TODO.md` publicado, pero siguen en su historial.
