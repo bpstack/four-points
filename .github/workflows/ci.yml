@@ -42,3 +42,7 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm run verify
+      # Every tracked Markdown file in the repo, each with its nearest .prettierrc
+      - name: Check Markdown format
+        working-directory: .
+        run: git ls-files -z '*.md' | xargs -0 frontend/node_modules/.bin/prettier --check --ignore-path .prettierignore --ignore-path frontend/.prettierignore

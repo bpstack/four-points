@@ -168,10 +168,10 @@ blocks — respect the original style).
 
 **The same Markdown rule applies everywhere.** Prettier uses the nearest config,
 so `backend/.prettierrc` and `frontend/.prettierrc` repeat it in a `*.md`
-override (80 columns, `proseWrap: always`); their code settings are unchanged.
-`frontend/.prettierignore` leaves out the checklist guides and references in
-`frontend/content/checklist/`, which the app renders, until they are edited on
-purpose.
+override (80 columns, `proseWrap: always`, `embeddedLanguageFormatting: off`);
+their code settings are unchanged. `frontend/.prettierignore` leaves out the
+checklist guides and references in `frontend/content/checklist/`, which the app
+renders, until they are edited on purpose.
 
 **Lines over 80 columns are only acceptable** inside code blocks and where the
 line is a single unbreakable piece (a long inline code span or link). Prose and
@@ -184,8 +184,14 @@ a list (`- **key**: description`) instead of a table. Applies to any `.md` in
 the repo (including `docs/`) when creating or editing a table; old ones are
 fixed when touched.
 
+**CI checks every tracked `.md`** with the frontend's Prettier, the one Markdown
+binary: the backend's is a different version and wraps some lines differently.
+Run the same check from the root before committing, and format only the files
+you changed:
+
 ```bash
-./frontend/node_modules/.bin/prettier --write "*.md" "docs/**/*.md" "**/AGENTS.md"
+git ls-files -z '*.md' | xargs -0 ./frontend/node_modules/.bin/prettier --check --ignore-path .prettierignore --ignore-path frontend/.prettierignore
+./frontend/node_modules/.bin/prettier --write <changed files>
 ```
 
 ## Commit and Push Conventions
