@@ -1,5 +1,6 @@
 // index.ts
 
+import './config/timezone.js' // first: the process runs in UTC (ADR-047)
 import express, { Request, Response, NextFunction } from 'express'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'

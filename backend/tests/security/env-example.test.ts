@@ -11,8 +11,16 @@ import { fileURLToPath } from 'node:url'
 const backend = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const example = readFileSync(join(backend, '.env.example'), 'utf8')
 
-// vitest.config.ts reads SKIP_DB_TESTS for the test runner, not the app
-const SKIP = new Set(['node_modules', 'tests', 'scheduling-solver', 'db-mysql', 'vitest.config.ts'])
+// vitest.config.ts reads SKIP_DB_TESTS for the test runner, not the app;
+// config/timezone.ts sets TZ, it is not something to configure (ADR-047)
+const SKIP = new Set([
+  'node_modules',
+  'tests',
+  'scheduling-solver',
+  'db-mysql',
+  'vitest.config.ts',
+  'timezone.ts',
+])
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name)

@@ -1040,3 +1040,31 @@
     de 2026 (periodo `2026-10`).
   - La migración tiene que estar en Aiven antes del despliegue; sin la tabla,
     cada tarea anota el error en el log y no se ejecuta.
+
+## ADR-047 — El backend corre en UTC; el «hoy» del hotel se calcula en Madrid
+
+- **Estado:** ✅ aceptada (2026-10-14)
+- **Fecha:** 2026-10-14
+- **Decisión:** el proceso del backend fija `TZ=UTC` al arrancar
+  (`config/timezone.ts`, primer import de `index.ts`), `mysql2` lee y escribe
+  las fechas en UTC (`timezone: 'Z'`) y cada sesión de MySQL fija
+  `time_zone = '+00:00'`. Las fechas de negocio («hoy», el día del hotel) se
+  calculan siempre en Node con `config/date-utils.ts` (`getTodayMadrid`) y se
+  pasan como parámetro; el SQL no usa `CURDATE()` para «hoy» ni zonas con
+  nombre. En el frontend, el «hoy» sale de `getMadridDate()`. Completa el canon
+  del refactor de mayo: UTC para las marcas de auditoría, Madrid para la lógica
+  de negocio.
+- **Motivo:** Render y Aiven ya estaban en UTC, pero el portátil y el MySQL
+  local en hora de Madrid: el mismo código daba otra fecha según la máquina (una
+  `DATE` llegaba con un día menos en local y cada edición la movía). Y en
+  producción, entre las 00:00 y las 02:00 de Madrid, `CURDATE()` y
+  `toISOString()` daban todavía el día anterior. Se descartó devolver las `DATE`
+  como texto (`dateStrings`): cambia la forma de los datos en decenas de sitios
+  para el mismo resultado. Se descartó `Europe/Madrid` en el SQL: el MySQL local
+  no tiene cargadas las zonas con nombre.
+- **Consecuencias:**
+  - Local se comporta como producción; en producción no cambia la forma de
+    ningún dato.
+  - Los `DATETIME` locales escritos antes con hora de Madrid se ven 2 horas
+    desplazados (datos de prueba).
+  - Los tests corren en UTC en cualquier máquina (`vitest.config.ts`).
