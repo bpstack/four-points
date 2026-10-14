@@ -193,12 +193,6 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
 - [ ] **Ejecutor de tests en el frontend** — no tiene: sus tests viven en
       `backend/tests/` (10 ficheros: 7 importan funciones del frontend y 3 leen
       su código) y no cubren componentes ni hooks. _Contado el 2026-10-12._
-- [ ] **Parking: `SpotType` no coincide con la BD** — en
-      `backend/models/parking/index.ts` es
-      `standard | large | handicapped | electric`; el `ENUM` de
-      `parking_spots.spot_type` es
-      `normal | ancha | mas_ancha | esquina | accesible | estrecha_bicis`. El
-      tipo no protege nada hoy. _Comprobado por mí el 2026-10-13._
 - [ ] **Solver: el venv local no coincide con producción** — en el equipo
       principal corre Python 3.13.5 y `.python-version` fija 3.11, y no tiene
       `pytest`, así que la suite de Python no se puede lanzar. Recrearlo con

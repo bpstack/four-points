@@ -6,7 +6,7 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2'
 // ENUMS & CONSTANTS
 // ============================================
 
-export type SpotType = 'standard' | 'large' | 'handicapped' | 'electric'
+export type SpotType = 'normal' | 'ancha' | 'mas_ancha' | 'esquina' | 'accesible' | 'estrecha_bicis'
 export type LevelCode = '-2' | '-3'
 export type BookingStatus = 'reserved' | 'checked_in' | 'completed' | 'canceled' | 'no_show'
 // Same values as the ENUM columns of parking_bookings (db-mysql/aiven/04_parking_tables.sql)
