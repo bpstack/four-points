@@ -137,10 +137,6 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       historial) y `resolution_notes` (reescribe el campo entero, así que se
       pueden inventar o borrar notas con autor). _Comprobado por mí el
       2026-09-28._
-- [ ] **Groups: el historial registra campos que no cambiaron** — editar solo el
-      importe de un grupo dejó 7 filas `updated` (`arrival_date`, `created_at`,
-      `updated_by`…). La comparación de `logGroupUpdated` trata como distintos
-      valores iguales (fechas, nulos). _Visto el 2026-10-11._
 - [ ] **Checklist: el reinicio manual no funciona** — `resetRun` cierra el run y
       crea otro del mismo día, pero la clave única
       `uk_run (hotel_id, checklist_id, hotel_date)` lo impide: 500. Después
