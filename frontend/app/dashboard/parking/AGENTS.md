@@ -1,7 +1,10 @@
 # AGENTS.md — Parking (frontend)
 
+**Up:** [`frontend/AGENTS.md`](../../../AGENTS.md) — `frontend/` rules ·
+[root `AGENTS.md`](../../../../AGENTS.md) — shared rules and module map.
+
 > UI for the parking module. Backend documented at
-> `backend/services/parking/CLAUDE.md`. **This module is the project's internal
+> `backend/services/parking/AGENTS.md`. **This module is the project's internal
 > reference for responsive patterns** — when in doubt about how to do a wide
 > table or a mobile-friendly dashboard in another module, look here first.
 
@@ -14,11 +17,11 @@ frontend/app/dashboard/parking/
    ├── loading.tsx                 (skeleton)
    ├── error.tsx                   (error boundary)
    ├── actions/
-   │   └── getParkingDashboardStats.ts  (71 lines — server action for SSR)
+   │   └── getParkingDashboardStats.ts  (~100 lines — server action for SSR)
    ├── components/
    │   └── ParkingDashboardClient.tsx   (client that receives the pre-fetched stats)
    ├── bookings/
-   │   ├── page.tsx                (booking list — SSR for page 0)
+   │   ├── page.tsx                (booking list — SSR of ?page= (default 1), 50 per page)
    │   ├── new/page.tsx            (new booking form)
    │   └── [code]/page.tsx         (booking detail by booking_code)
    └── status/
@@ -31,7 +34,7 @@ frontend/app/dashboard/parking/
        │   ├── StatusPanels.tsx         (side KPI panels)
        │   └── modals/                  (5 modals: CheckIn, CheckOut, Cancel, Overdue, BaseModal)
        ├── hooks/
-       │   └── useParkingStatus.ts      (React Query hook; no polling)
+       │   └── useParkingStatus.ts      (React Query hook with local keys; no polling)
        └── utils/
            └── statusBadges.tsx
 
@@ -50,15 +53,15 @@ frontend/app/components/parking/
    └── bookings/
        ├── BookingDetailClient.tsx (688 lines — the detail page)
        ├── BookingHeader.tsx
-       ├── EditBookingModal.tsx    (567 lines)
+       ├── EditBookingModal.tsx    (564 lines)
        ├── CheckInModal.tsx
        ├── CheckOutModal.tsx
        ├── PaymentModal.tsx
        └── InfoCard.tsx
 
 frontend/app/lib/parking/
-   ├── queries.ts                  (313 lines — apiClient calls, no React Query hooks here)
-   ├── types.ts                    (367 lines — every DTO)
+   ├── queries.ts                  (~320 lines — parkingApi: apiClient calls, no React Query hooks here)
+   ├── types.ts                    (~360 lines — every DTO)
    ├── actions.ts                  (71 lines — additional server actions)
    └── index.ts
 ```
@@ -88,7 +91,9 @@ Module entry screen. Server Component that pre-fetches the day's stats with
 
 - Day KPIs (occupancy, revenue, arrivals, departures).
 - Pending check-in and check-out lists.
-- Trend charts (coming soon).
+
+There are no trend charts: the analytics API they would use was removed on
+2026-10-02.
 
 SSR pre-fetch is **intentional**: the first paint with no spinner is what sets
 this module apart. If you add more pre-fetchable views, follow the `actions/` +
@@ -105,7 +110,10 @@ Server Component pattern.
   `arrivals_total`, `departures_pending`, `departures_completed`,
   `departures_total`. Map to pre-armed combinations of `status` + `date` for the
   user.
-- **Pagination:** server-side; `limit`/`offset` + `PaginationInfo`.
+- **Pagination:** server-side; `page` + `limit` (50), and the response's
+  `pagination: { page, limit, total, totalPages }`.
+- **No React Query here:** the list keeps its data in `useState` and calls
+  `parkingApi.getAllBookings()` directly.
 - **`ActionDropdown`** per row with contextual actions based on the booking's
   current status.
 - **New booking** via the `+ Nueva reserva` button → navigates to
@@ -180,33 +188,35 @@ necessary — the module is tuned specifically for the `md` and `xl` breakpoints
 ## React Query — `lib/parking/queries.ts`
 
 `parkingApi` is a flat object with one method per endpoint
-(`parkingApi.listSpots()`, `parkingApi.getBookings(...)`, etc.). **No pre-built
-hooks** — each component calls `useQuery` directly with whatever key it wants.
+(`parkingApi.getAllSpots()`, `parkingApi.getAllBookings(...)`, etc.). **No
+pre-built hooks** — React Query is used in `useParkingStatus` and
+`ParkingDashboardClient`; the bookings list and detail call `parkingApi`
+directly.
 
 Typical client pattern:
 
 ```tsx
 const { data, isLoading } = useQuery({
-  queryKey: ['parking', 'bookings', filters],
-  queryFn: () => parkingApi.getBookings(filters),
+  queryKey: ['parking', 'bookings', date],
+  queryFn: () => parkingApi.getAllBookings({ date }),
 })
 ```
 
-**There's no `parkingKeys` factory** (unlike scheduling). Components hardcode
-the keys. This is style, not a bug — it works because the module doesn't have a
-complex invalidation hierarchy. If complexity grows, consider extracting a
-factory equivalent to `schedulingKeys`.
+**There's no shared `parkingKeys` factory** (unlike scheduling).
+`useParkingStatus` defines its own (`statsKey`, `bookingsKey`, `overdueKey`).
+This is style, not a bug — it works because the module doesn't have a complex
+invalidation hierarchy. If complexity grows, consider extracting a factory
+equivalent to `schedulingKeys`.
 
 ## Duplicated enums — sync rule
 
 `frontend/app/components/parking/helpers/constants.ts` holds the frontend copy
-of the backend enums:
+of two backend enums:
 
-- `BookingStatus` (5 values)
-- `BookingSource` (5 values)
-- `PaymentMethod` (4 values)
-- `SpotType` (6 values)
-- Label and badge tone mappings
+- `BookingStatus` (5 values), with its label and badge tone (`STATUS_CONFIG`)
+- Payment method (4 values, `PAYMENT_METHODS`), with its label
+
+Booking source, spot type and level are not copied there.
 
 **If the backend adds a value, update both sides in the same commit.** If you
 leave the frontend out of sync, bookings with the new value will render with no
@@ -215,9 +225,9 @@ badge or empty label. No visible error — just silently broken UI.
 ## Auth
 
 The whole `/dashboard/parking/*` subroute requires authentication + a role other
-than mantenimiento (the backend blocks them and the dashboard layout assumes a
-logged-in user). No admin-only restriction — recepcionistas use the module
-daily.
+than mantenimiento. The UI does not hide it from mantenimiento (the nav link
+shows for every role); the backend answers 403. No admin-only restriction —
+recepcionistas use the module daily.
 
 ## Known gotchas
 
@@ -225,7 +235,7 @@ daily.
    you're about to add non-trivial features (new filters, sorting, exports),
    consider extracting subcomponents before adding more LOC. Not urgent but on
    the radar.
-2. **`EditBookingModal.tsx` is 567 lines.** Same warning, smaller scale.
+2. **`EditBookingModal.tsx` is 564 lines.** Same warning, smaller scale.
 3. **`booking_code` vs `id` in URLs:** public URLs use `code`, never `id`. Keep
    that invariant when adding new parametric routes.
 4. **Status view ≠ dashboard.** Don't merge the two UIs: dashboard is
@@ -235,13 +245,13 @@ daily.
    Data refreshes when the user performs an action. If you ever add WebSocket /
    SSE for push-based invalidation, **respect the React Query invalidation
    pattern** — don't introduce parallel local state.
-6. **No invoicing frontend yet.** PDF generation is off on the backend (TODO).
-   If you activate it, you'll need to build the invoice list/download UI —
-   nothing exists today.
+6. **No invoicing.** There is no parking invoice on either side: the backend
+   placeholder was removed on 2026-10-02. Building it means a backend endpoint
+   and the invoice list/download UI.
 
 ## Cross references
 
-- `backend/services/parking/CLAUDE.md` — full backend for the module.
+- `backend/services/parking/AGENTS.md` — full backend for the module.
 - `frontend/app/components/parking/helpers/constants.ts` — frontend copy of the
   enums.
 - `frontend/app/components/parking/` — module's shared components (list, badges,

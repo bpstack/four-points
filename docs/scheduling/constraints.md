@@ -506,8 +506,8 @@ valid.
      boundary use the context of N-1);
    - **rest between shifts** (`consecutive-rest.constraint`): rest on day 1 vs
      the last shift of N-1;
-   - **rotation continuity / T→M**: `schedule-validator.ts` ("VALIDATION
-     4c") compares day 1 with the last shift type of N-1.
+   - **rotation continuity / T→M**: `schedule-validator.ts` ("VALIDATION 4c")
+     compares day 1 with the last shift type of N-1.
 
    **Validator:** `PreviousMonthHistory` is wired and read by the four
    constraints (completed 2026-04-26).
@@ -588,5 +588,5 @@ per rule in `backend/services/scheduling/constraints/` (`coverage`,
 `night-block`, `consecutive-rest`, `max-consecutive-work`, `monthly-libre`,
 `employee-rules`). `schedule-validator.ts` registers only `coverage` and
 `employee-rules`; the other four are exercised by
-`tests/scheduling/constraints.test.ts` only (checked 2026-10-02). Soft weights in
-`soft-weights.ts`.
+`tests/scheduling/constraints.test.ts` only (checked 2026-10-02). Soft weights
+in `soft-weights.ts`.

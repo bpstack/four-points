@@ -58,8 +58,8 @@ Tables by module:
   another one is written that fixes it.
 - **`aiven/` is the frozen base schema** as of 2026-05-20. The name is
   misleading: it is not "the Aiven database", but the initial installation that
-  runs `MASTER_INSTALL.sql`. It is never run against a database with data.
-  Two of its files fail on an empty server (a duplicate foreign key name in
+  runs `MASTER_INSTALL.sql`. It is never run against a database with data. Two
+  of its files fail on an empty server (a duplicate foreign key name in
   `11_cashier.sql`, a foreign key to a later table in `19_scheduling.sql`):
   `pnpm setup:local` fixes both in memory, and
   `20261005_complete_fresh_install.sql` adds what an install made by hand
@@ -70,13 +70,12 @@ Tables by module:
   `NOW()` or `CURDATE()` runs 1–2 hours behind Madrid; the backend calculates
   "today" in Madrid time on its own.
 - **Encrypted connection**: TLS with the Aiven certificate in
-  `backend/config/certs/`. It is the project's public CA certificate (no
-  private key) and names the Aiven project by its id; it stays in the
-  repository because the backend and `apply-migration.sh` need it (decided on
-  2026-10-12).
+  `backend/config/certs/`. It is the project's public CA certificate (no private
+  key) and names the Aiven project by its id; it stays in the repository because
+  the backend and `apply-migration.sh` need it (decided on 2026-10-12).
 
-**Migration status**: the 26 recorded in `INDEX.md` are applied on Aiven
-(the last two, `20261011_keep_group_history_on_delete.sql` and
+**Migration status**: the 26 recorded in `INDEX.md` are applied on Aiven (the
+last two, `20261011_keep_group_history_on_delete.sql` and
 `20261012_unique_invoice_supplier_number.sql`, applied and verified on
 2026-10-12).
 
@@ -101,9 +100,8 @@ backend (repositories) ─► mysql2 pool ─► TLS ─► MySQL on Aiven (hote
   verification) and a copy of the Aiven certificate.
 - **`scripts/`**: the incremental migrations and utilities: applying a
   migration, local backup, local database recreation and collation check. All
-  read the credentials from `backend/.env`. The one-off data fixes and the
-  quick query scripts were removed on 2026-10-04 (they carried the Aiven
-  password).
+  read the credentials from `backend/.env`. The one-off data fixes and the quick
+  query scripts were removed on 2026-10-04 (they carried the Aiven password).
 - **`backup/`**: database dumps, never committed.
 - **Four documents** that overlap: `CLAUDE.md`, `README.md`, `INDEX.md` and
   `MIGRATIONS_POLICY.md`. Several data they give are outdated.

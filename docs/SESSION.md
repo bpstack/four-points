@@ -7,7 +7,7 @@
 Lo que no encaje aquí es una decisión (a `DECISIONS.md`), un hallazgo (a su
 propio fichero) o ruido (se borra).
 
-**Última actualización:** 2026-10-12
+**Última actualización:** 2026-10-14
 
 ---
 
@@ -28,7 +28,12 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 - **Local:** `pnpm setup:local` instala desde cero con admin completo, datos
   ficticios y la base de horarios de la demo (`scheduling-seed.sql`).
 - **Repositorio original:** `four-points-archive`, archivado y privado.
-- **Decisiones:** `DECISIONS.md`, hasta ADR-041.
+- **Decisiones:** `DECISIONS.md`, hasta ADR-044.
+- **Harness:** capa 1 en `backend/AGENTS.md` y `frontend/AGENTS.md`; el
+  `AGENTS.md` raíz guarda lo común y los tres niveles se enlazan entre sí
+  (ADR-042, ADR-043). La sesión se abre en la raíz y activa el Node de cada lado
+  antes de cada comando (ADR-044). CI comprueba el formato de todo el Markdown
+  versionado.
 - **Revisión de OpenCode, cerrada el 2026-10-12:** sus 20 ramas `opencode/*`
   están fusionadas en esta rama (PR #7–#26) y probadas en preview; las
   migraciones `20261011_keep_group_history_on_delete.sql` y
@@ -60,10 +65,10 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 Luego, «Después de publicar» de `TODO.md`, por prioridad:
 
 2. **Rotar las credenciales de producción** (BD, clave JWT, Cloudinary, claves
-   de IA). Ninguna de ellas está en el historial, pero sí la contraseña en
-   claro de un usuario de la aplicación (`test-login.js`, commit `8595ec0`):
-   cambiarla también. Se hace en los paneles y se comprueba que producción y
-   preview siguen funcionando.
+   de IA). Ninguna de ellas está en el historial, pero sí la contraseña en claro
+   de un usuario de la aplicación (`test-login.js`, commit `8595ec0`): cambiarla
+   también. Se hace en los paneles y se comprueba que producción y preview
+   siguen funcionando.
 3. **Rastro de cambios en dinero:** ingresos de F&B, pagos y recuentos de caja,
    cobros de parking.
 4. **Fechas y «hoy» según la zona horaria de cada pieza**, como tarea propia
@@ -78,20 +83,19 @@ Nada ahora mismo.
 
 ## Cuidado con esto
 
-- **`main` está protegida** (ruleset `protect-main`): solo entra por PR, con
-  los checks `backend` y `frontend` en verde y como merge commit (sin squash ni
+- **`main` está protegida** (ruleset `protect-main`): solo entra por PR, con los
+  checks `backend` y `frontend` en verde y como merge commit (sin squash ni
   rebase); no admite force push ni borrado. La rama de trabajo no tiene reglas.
-- **Preview y producción comparten la BD de Aiven** y las cookies de sesión:
-  lo que se prueba en preview cambia datos de producción, y entrar en preview
+- **Preview y producción comparten la BD de Aiven** y las cookies de sesión: lo
+  que se prueba en preview cambia datos de producción, y entrar en preview
   sustituye la sesión de producción en ese navegador.
-- **La cuenta demo es un admin** (`users.is_demo = 1`): lo que no deba tocar
-  se bloquea en la ruta con `denyDemo`/`denyDemoWrites` o en
-  `demoRestriction`. Una ruta nueva que escriba fuera de lo que reinicia el
-  mock (usuarios, catálogos, configuración) necesita su guarda. Si cambia la
-  base de horarios de la demo, se regenera el seed local con
-  `pnpm seed:scheduling:export`.
-- **Los `AGENTS.md` de módulo** ya se corrigieron, pero no son fuente fiable:
-  se contrastan siempre con el código y la BD.
+- **La cuenta demo es un admin** (`users.is_demo = 1`): lo que no deba tocar se
+  bloquea en la ruta con `denyDemo`/`denyDemoWrites` o en `demoRestriction`. Una
+  ruta nueva que escriba fuera de lo que reinicia el mock (usuarios, catálogos,
+  configuración) necesita su guarda. Si cambia la base de horarios de la demo,
+  se regenera el seed local con `pnpm seed:scheduling:export`.
+- **Los `AGENTS.md` de módulo** ya se corrigieron, pero no son fuente fiable: se
+  contrastan siempre con el código y la BD.
 - **Nada de `docs/_archive/` se publica** (git lo ignora). Si algo de ahí debe
   ser público, se copia fuera.
 - **Enlaces rotos conocidos:** 3 ficheros fuera de `docs/` citan todavía

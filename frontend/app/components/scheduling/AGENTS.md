@@ -1,21 +1,24 @@
 # AGENTS.md — Scheduling (frontend)
 
+**Up:** [`frontend/AGENTS.md`](../../../AGENTS.md) — `frontend/` rules ·
+[root `AGENTS.md`](../../../../AGENTS.md) — shared rules and module map.
+
 > UI for the scheduling module. Business logic (validator, constraints, solver)
-> lives in the backend — read `backend/services/scheduling/CLAUDE.md` when the
-> task crosses the boundary, and `backend/scheduling-solver/CLAUDE.md` when it
+> lives in the backend — read `backend/services/scheduling/AGENTS.md` when the
+> task crosses the boundary, and `backend/scheduling-solver/AGENTS.md` when it
 > touches the Python solver.
 
 ## Layout
 
 ```
 frontend/app/dashboard/scheduling/
-   ├── layout.tsx              (auth gate: admin / group-admin only; redirects to /dashboard)
+   ├── layout.tsx              (auth gate: admin only; redirects to /dashboard)
    ├── page.tsx                (entry point — wraps SchedulingClient in Suspense with skeleton)
    └── config/
        └── page.tsx            (entry point for SchedulingConfigClient)
 
 frontend/app/components/scheduling/
-   ├── SchedulingClient.tsx    (877 lines — grid orchestrator + month-level actions)
+   ├── SchedulingClient.tsx    (~900 lines — grid orchestrator + month-level actions)
    ├── ScheduleGrid.tsx        (535 lines — interactive monthly table; cell locking visual; sticky columns)
    ├── ShiftSelector.tsx       (shift-picker popover after a cell click; bulk mode for range selection)
    ├── ValidationWarnings.tsx  (real-time errors/warnings/info banner; grouped by severity)
@@ -33,15 +36,14 @@ frontend/app/components/scheduling/
        ├── RulesTab.tsx         (608 lines — per-employee rules: fixedShift, fixedDays, noWeekends, shiftPriority)
        ├── RequestsTab.tsx      (704 lines — request management: pending → approved/rejected)
        ├── ShiftStatsTab.tsx    (per-shift stats across the year)
-       ├── PresenciasTab.tsx    (dedicated editor for employees with fixedShift='P' and fixedDays)
-       └── utils/
+       ├── PresenciasTab.tsx    (converts a schedule pasted from Excel into presencias)
+       └── utils/               (date.ts: formatLocalDate; presencias.ts: the converter)
 
 frontend/app/lib/scheduling/
    ├── queries.ts              (645 lines — schedulingApi: every call; schedulingKeys: React Query keys factory)
-   ├── types.ts                (553 lines — all frontend DTOs; same shape as backend)
-   ├── server.ts               (Server Component utilities — direct fetch to backend)
+   ├── types.ts                (~500 lines — all frontend DTOs; same shape as backend)
    ├── shift-styles.ts         (Tailwind classes per shift code; light + dark mode)
-   ├── export-pdf.ts           (271 lines — month PDF export via jsPDF + autotable)
+   ├── export-pdf.ts           (~270 lines — month PDF export with pdf-lib)
    └── index.ts                (barrel exports)
 ```
 
@@ -53,18 +55,20 @@ entire `/dashboard/scheduling` subroute. Calls `useAuth()`, validates
 while `loading=true`. **Recepcionistas and mantenimiento don't enter this
 module.**
 
-`useAuth()` comes from the global `AuthContext` (mounted in `DashboardLayout`).
-No re-fetch; it reads from context.
+`useAuth()` comes from the global `AuthProvider` (`app/lib/auth/useAuth.tsx`),
+mounted inside `app/lib/theme/ThemeProvider.tsx`. No re-fetch; it reads from
+context. The backend enforces the same rule: the whole scheduling router is
+`isAdmin`.
 
 ## Main component — `SchedulingClient.tsx`
 
-877 lines, marked `'use client'`. Orchestrates the monthly grid.
+~900 lines, marked `'use client'`. Orchestrates the monthly grid.
 
 **Responsibilities:**
 
 - Reads `?month=<id>` from the query string (URL is the source of truth for the
   active month).
-- React Query: `schedulingApi.getMonthFull(monthId)`, `getAllShifts`,
+- React Query: `schedulingApi.getMonthById(monthId)`, `getAllShifts`,
   `validateSchedule(monthId)`, `getHistory`, `getMonthInfo`, etc.
 - Manages local selection state (single cell + bulk selection via
   `BulkSelection`).
@@ -72,7 +76,8 @@ No re-fetch; it reads from context.
   publish/unpublish, delete month, manage holidays.
 - Handles modals: `ManageHolidaysModal`, `ConfirmDialog` for destructive
   actions.
-- Triggers PDF download (`downloadSchedulePdf` from `lib/scheduling`).
+- Triggers PDF download (`downloadSchedulePdf(monthData)` from
+  `lib/scheduling`).
 - Toast notifications via `react-hot-toast` for mutations.
 
 **Editing flow:**
@@ -91,16 +96,18 @@ No re-fetch; it reads from context.
 - "Generate schedule" button → calls `POST /months/:id/generate`.
 - While generating, shows loading state. Effective timeout is set by the backend
   (60 s from Node, 30 s from Python).
-- If the response is `infeasible`, surfaces the `conflictingConstraints` and
-  `suggestedRelaxations` in the warnings banner (structured).
+- If the response is a 422 with `conflictingConstraints` (infeasible), opens a
+  modal (`infeasibleModal`) listing them and the `suggestedRelaxations`.
 - If `ok`, invalidates the month → grid fills in.
 
 ## Grid — `ScheduleGrid.tsx`
 
 Monthly table of employees × days. Critical patterns:
 
-- **Locked cells:** assignments with `source_constraint_id != null` show a
-  `<FiLock />` icon and aren't clickable; error toast if you try.
+- **Locked cells:** assignments with `sourceConstraintId` show a `<FiLock />`
+  icon and aren't editable (`canEditCell` is false). Cells filled by a solver
+  run from approved requests or `fixedDays` carry no `sourceConstraintId`, so
+  they stay editable.
 - **Sticky columns:** employee + total libres are `position: sticky; left: 0`.
   Lets you scroll horizontally without losing context.
 - **Horizontal overflow:** wrapper with `overflow-x-auto` + table with
@@ -118,8 +125,10 @@ Monthly table of employees × days. Critical patterns:
 
 ## Config panel — `SchedulingConfigClient.tsx`
 
-Container for 7 tabs, navigated via `?tab=<tabName>` in the query string. Each
-tab is an independent client component that loads its own data:
+Container for 7 tabs, navigated via `?tab=<tabName>` in the query string
+(`VALID_TABS`; `employees` when missing). Only the first five have a button in
+the tab bar: `shift-stats` and `presencias` are reached by URL only. Each tab is
+an independent client component that loads its own data:
 
 - **`employees`** (`EmployeesTab.tsx`): Schedulable employee list + add/remove
   checkbox + start_date/end_date
@@ -132,8 +141,9 @@ tab is an independent client component that loads its own data:
 - **`requests`** (`RequestsTab.tsx`): Request management
   (vacations/IT/bonificables): approve / reject / edit
 - **`shift-stats`** (`ShiftStatsTab.tsx`): Per-shift stats across the year
-- **`presencias`** (`PresenciasTab.tsx`): Editor specifically for employees with
-  `fixedShift='P'` and `fixedDays`
+- **`presencias`** (`PresenciasTab.tsx`): Converts a monthly schedule pasted
+  from Excel (name + tab-separated days) into presencias; it does not read
+  `scheduling_assignments` (`TODO.md`: "Presencias a mano")
 
 `'react-day-picker/style.css'` is imported in `SchedulingConfigClient.tsx`
 (shared by several tabs that use DayPicker for dates).
@@ -157,9 +167,8 @@ parent.
 (fetch wrapper with auth/credentials). Every call returns the matching TS type
 from `types.ts`.
 
-There's a specific `downloadSchedulePdf(monthId)` wrapper that delegates to
-`lib/scheduling/export-pdf.ts` to build the PDF in the browser (no backend PDF
-endpoint).
+`downloadSchedulePdf(monthData)` lives in `lib/scheduling/export-pdf.ts` and
+builds the PDF in the browser (no backend PDF endpoint).
 
 ## Server fetching
 
@@ -170,9 +179,9 @@ request cookies are forwarded.
 
 ## PDF export — `lib/scheduling/export-pdf.ts`
 
-271 lines. Builds the month's schedule PDF using `jspdf` + `jspdf-autotable`.
-Runs **in the browser** (no backend endpoint). Takes `SchedulingMonthFull` +
-`shifts` and produces the blob for download.
+~270 lines. Builds the month's schedule PDF with `pdf-lib` (text made encodable
+by `app/lib/helpers/pdfText.ts`). Runs **in the browser** (no backend endpoint).
+Takes `SchedulingMonthFull` and produces the blob for download.
 
 If you change shift codes or colors, **also update this file** — it duplicates
 the color maps locally so runtime doesn't depend on the DOM.
@@ -181,10 +190,10 @@ the color maps locally so runtime doesn't depend on the DOM.
 
 ### Date formatting → `formatLocalDate(d: Date)`
 
-`SchedulingConfigClient.tsx` defines a module-level helper
-`formatLocalDate(d: Date)` that uses `getFullYear/getMonth/getDate` directly (no
-`toLocaleDateString` with ISO string parsing, **timezone-safe**). Use it instead
-of `new Date(isoString).toLocaleDateString()` to avoid the classic UTC-vs-local
+`config/utils/date.ts` exports `formatLocalDate(d: Date)`, which uses
+`getFullYear/getMonth/getDate` directly (no `toLocaleDateString` with ISO string
+parsing, **timezone-safe**). Use it instead of
+`new Date(isoString).toLocaleDateString()` to avoid the classic UTC-vs-local
 bug.
 
 ### DayPicker dark mode
@@ -218,17 +227,18 @@ function components inside the clients.
 
 `useTranslations()` from `next-intl`. Main namespaces:
 
-- `scheduling` — the main grid page.
-- `scheduling.config` — the config panel and its tabs.
+- `scheduling` and its sub-namespaces (`scheduling.actions`,
+  `scheduling.toasts`, `scheduling.messages`…) — the main grid page.
+- `scheduling.config.*` — the config panel and its tabs.
 
-Dictionaries in `frontend/i18n/` (es + en). When you add a new key, **add it to
-both languages** in the same commit.
+Dictionaries in `frontend/messages/<locale>/scheduling.json` (es + en). When you
+add a new key, **add it to both languages** in the same commit.
 
 ### Shift codes
 
 Defined exhaustively in `app/lib/scheduling/shift-styles.ts` (Tailwind color
 mapping). The semantics of each code (M, T, N, P, PI, L, V, B, E, IT, FO, A, LI)
-is documented in `backend/services/scheduling/CLAUDE.md` § Shift types — that's
+is documented in `backend/services/scheduling/AGENTS.md` § Shift types — that's
 the source of truth. If you add a new code:
 
 1. Backend: add it to `scheduling_shifts` (DB) and to the validator / solver as
@@ -238,21 +248,20 @@ the source of truth. If you add a new code:
 
 ## UI-visible known bugs / debt
 
-- **`setSchedulableEmployees` wipes `start_date`/`end_date`** (TODO.md): saving
-  the list from `EmployeesTab` loses previously-set dates. The fix is on the
-  backend but the bug is felt in the Employees tab. If you touch it, note the
-  bug is still open.
-- **DayPicker inside RequestsTab → iOS modal scroll**: known edge case on Safari
-  mobile — the modal overflow fights the DayPicker gestures. Workaround:
-  `touch-action: pan-y` on the modal body.
+- **DayPicker inside RequestsTab → iOS modal scroll**: reported edge case on
+  Safari mobile — the modal overflow fights the DayPicker gestures. The
+  suggested workaround (`touch-action: pan-y` on the modal body) is **not**
+  applied in the code; not reproduced since.
+- **Presencias by hand**: the `presencias` tab needs the schedule pasted as text
+  (`TODO.md`).
 
 ## Cross references
 
-- `backend/services/scheduling/CLAUDE.md` — TS backend: validator, constraints,
+- `backend/services/scheduling/AGENTS.md` — TS backend: validator, constraints,
   endpoints, shift type semantics, configuration tables, historical importer.
-- `backend/scheduling-solver/CLAUDE.md` — Python solver: daemon, CP-SAT, hard
+- `backend/scheduling-solver/AGENTS.md` — Python solver: daemon, CP-SAT, hard
   constraints, soft objective.
 - `frontend/app/lib/scheduling/types.ts` — DTOs shared with the backend; keep
   manually in sync when they change.
-- `frontend/app/components/dashboard/parking/` — internal reference for the
+- `frontend/app/dashboard/parking/AGENTS.md` — internal reference for the
   project's responsive patterns.

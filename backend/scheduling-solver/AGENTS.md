@@ -1,8 +1,13 @@
 # AGENTS.md — Scheduling Solver (Python / CP-SAT)
 
-> Context specific to this directory. The root `CLAUDE.md` covers the scheduling
-> system end-to-end (UI + backend TS + solver). This file focuses on the Python
-> side: daemon, CP-SAT model, constraints, tests and deploy.
+**Up:** [`backend/AGENTS.md`](../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../AGENTS.md) — shared rules and module map.
+
+> Context specific to this directory. The rest of the scheduling system is in
+> `backend/services/scheduling/AGENTS.md` (TS validator, endpoints, the
+> cross-language guide) and `frontend/app/components/scheduling/AGENTS.md` (UI).
+> This file focuses on the Python side: daemon, CP-SAT model, constraints, tests
+> and deploy.
 
 ## Purpose
 
@@ -23,7 +28,7 @@ daemon.py        ← persistent entry point; stdin/stdout JSON line-delimited lo
 main.py          ← one-shot CLI entry point (legacy, keep for occasional debug)
 schemas.py       ← Pydantic: SolverInput / SolverOutput (contract with Node)
 model.py         ← Builds the CP-SAT model, applies constraints, optimizes, decodes
-constraints/     ← One file per hard constraint, same signature apply(model, x, input, ...)
+constraints/     ← One file per hard constraint, each with an apply(model, x, input, ...)
   coverage.py        — H1: minimum M/T/N coverage per day
   night_block.py     — H2: consecutive night blocks [min, max]
   transitions.py     — H3: forbidden transitions (N→M/T/PI/P, T→M)
@@ -54,8 +59,9 @@ it receives EOF on stdin, it shuts down cleanly.
 
 The Node client (`backend/services/scheduling/solver-client.ts`) handles:
 
-- Daemon state: `idle` → `starting` → `ready` → `busy`
-- Semaphore: one request at a time (CP-SAT is not thread-safe per process)
+- Daemon phase: `idle` → `starting` → `ready`
+- Semaphore: one request at a time (CP-SAT is not thread-safe per process); it
+  is what marks the daemon busy, there is no `busy` phase
 - Abort-safe: the semaphore is not released until the daemon answers
 - Transparent respawn if the process dies (broken pipe → relaunch)
 
@@ -90,18 +96,19 @@ is created.
 
 ## Hard constraints
 
-Each file in `constraints/` exposes a function:
+Each file in `constraints/` exposes an `apply()`. The cross-month ones (`rest`,
+`night_block`, `transitions`, `day_blocks`) take the full signature and iterate
+over `all_days_e = virt_days + day_numbers`:
 
 ```python
 def apply(model, x, input, employees, days, virtual_days_by_emp=None):
     ...
 ```
 
-`employees` and `days` are passed for convenience (avoids re-extracting them
-from `input`). `virtual_days_by_emp` is optional; constraints that need
-cross-month continuity (`rest`, `night_block`, `transitions`, `day_blocks`)
-iterate over `all_days_e = virt_days + day_numbers`. The ones that do not
-(`coverage`, `libres`, `employee_rules`, `locked_cells`) do not.
+`coverage`, `libres` and `employee_rules` take
+`(model, x, input, employees, days)`, with no virtual days. `locked_cells` is
+the odd one: `(model, x, input, emp_idx_by_id)`. `employees` and `days` are
+passed for convenience (avoids re-extracting them from `input`).
 
 **Fine notes per constraint:**
 
@@ -125,8 +132,10 @@ iterate over `all_days_e = virt_days + day_numbers`. The ones that do not
   and would produce an artificial INFEASIBLE when generating the new month.
   `rest.py` **explicitly skips** these "doomed" windows — validating the
   previous month is the previous month's responsibility. Full reasoning in
-  `docs/scheduling/decisions.md` (entry 2026-05-20). Outstanding debt: the TS
-  validator does not apply this same exemption yet → potential drift. See
+  `docs/scheduling/decisions.md` (entry 2026-05-20). Outstanding debt, drift
+  with the TS validator: the live one checks H4 and H5 only inside the month
+  (and H5 as a warning), so cross-month windows are enforced here and not there.
+  Details in `backend/services/scheduling/AGENTS.md` § "Cross-month gotcha". See
   `docs/scheduling/constraints.md §H5`.
 
 - **H6 libres.** The monthly minimum is reduced by the number of locked
@@ -137,8 +146,9 @@ iterate over `all_days_e = virt_days + day_numbers`. The ones that do not
   (V/B/IT/E/FO/A) appear only where there is a locked cell; the solver never
   assigns them freely to other employees.
 
-- **day_blocks.** Minimum consecutive M and T blocks (`day_block_min` from
-  config). Forbids the M→T transition without a libre in between.
+- **day_blocks.** Minimum consecutive M and T blocks: `MIN_SHIFT_BLOCK = 3`, a
+  constant in `day_blocks.py`, not a config value. Forbids the M→T transition
+  without a libre in between.
 
 - **employee_rules.** `noWeekends` forces L on Saturday/Sunday for the affected
   employee. `fixedShift ∈ {M,T,N}` forbids other work shifts (only the fixed one
@@ -206,17 +216,18 @@ correct, specific message beats a thousand generic ones.
 
 ```bash
 cd backend/scheduling-solver
-python -m venv venv                       # create venv
-venv/Scripts/pip install ortools pydantic pytest    # Windows
-# venv/bin/pip install ortools pydantic pytest      # Linux/Mac
+python -m venv venv                                       # Python 3.11 (.python-version)
+venv/Scripts/pip install -r requirements.txt pytest       # Windows
+# venv/bin/pip install -r requirements.txt pytest         # Linux/Mac
 ```
 
-The venv lives here and is `.gitignore`d. On Render (deploy), the build command
-recreates the venv — see `TODO.md` § "Deploy en Render" if you need to touch the
-deploy.
+The venv lives here and is `.gitignore`d. On Render, the build command is
+`pnpm build` from `backend/`, which creates the venv with `python3` and installs
+`requirements.txt`.
 
-`requirements.txt` and `pyproject.toml` are alternative sources of truth; in
-practice we use the inline pins above for local dev.
+`requirements.txt` pins the versions production runs (`ortools`, `pydantic`);
+`pyproject.toml` only sets minimums. Installing from `requirements.txt` keeps
+local on the same versions as Render.
 
 ## Tests
 
@@ -240,10 +251,10 @@ test are the two lists to keep in sync when you add a solver-reachable fixture.
 ## Adding a new constraint (Python side)
 
 > Full cross-language guide (TS validator + Python solver + fixtures) lives in
-> the root `CLAUDE.md`, § "Adding a new constraint". This section covers only
-> the Python side.
+> `backend/services/scheduling/AGENTS.md`, § "Adding a new constraint (full
+> cross-language guide)". This section covers only the Python side.
 
-1. Create `constraints/<name>.py` with the standard signature
+1. Create `constraints/<name>.py` with the full signature
    `apply(model, x, input, employees, days, virtual_days_by_emp=None)`. Look at
    `coverage.py` for a simple template, `rest.py` for a cross-month template,
    `night_block.py` for a trailing template.

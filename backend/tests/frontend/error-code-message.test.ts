@@ -9,11 +9,11 @@ import {
   errorCodeMessage,
 } from '../../../frontend/app/lib/helpers/errorCodeMessage.js'
 
-// Every ERROR_CODES.X the backend source mentions (tests and the catalogue aside),
+// Every ERROR_CODES.X the backend source mentions (tests, CLI scripts and the catalogue aside),
 // plus any code written as a bare string (`code: 'X'`)
 function backendErrorCodes(): string[] {
   const root = resolve(__dirname, '../..')
-  const skip = new Set(['node_modules', 'tests', 'scheduling-solver', 'db-mysql'])
+  const skip = new Set(['node_modules', 'tests', 'scheduling-solver', 'db-mysql', 'scripts'])
   const codes = new Set<string>()
   const walk = (dir: string) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {

@@ -135,15 +135,13 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
         percentage: parseFloat(String(method.percentage)) || 0,
       })
     ),
-    daily_breakdown: (rawReport.daily_breakdown || []).map(
-      (day: RawDay): ParsedDay => ({
-        date: day.date,
-        status: day.status,
-        total_cash: parseFloat(String(day.total_cash)) || 0,
-        grand_total: parseFloat(String(day.grand_total)) || 0,
-        has_discrepancy: day.has_discrepancia,
-      })
-    ),
+    daily_breakdown: (rawReport.daily_breakdown || []).map((day: RawDay): ParsedDay => ({
+      date: day.date,
+      status: day.status,
+      total_cash: parseFloat(String(day.total_cash)) || 0,
+      grand_total: parseFloat(String(day.grand_total)) || 0,
+      has_discrepancy: day.has_discrepancia,
+    })),
     validation_errors: rawReport.validation_errors || [],
   }
 

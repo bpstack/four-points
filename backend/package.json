@@ -21,14 +21,15 @@
     "test:corpus": "vitest run tests/scheduling/corpus.test.ts",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,js}\"",
-    "format:check": "prettier --check \"**/*.{ts,js}\""
+    "format:check": "prettier --check \"**/*.{ts,js}\"",
+    "verify": "pnpm run lint --max-warnings=0 && pnpm run format:check && pnpm run typecheck && pnpm run test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.13.1",
+  "packageManager": "pnpm@10.28.0",
   "engines": {
-    "node": ">=22.16.0"
+    "node": "22.x"
   },
   "dependencies": {
     "@types/pdf-parse": "^1.1.5",

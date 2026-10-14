@@ -1,6 +1,7 @@
 # Scheduling Corpus
 
-Test fixtures for the `ScheduleValidator`. Each fixture is a JSON file that describes:
+Test fixtures for the `ScheduleValidator`. Each fixture is a JSON file that
+describes:
 
 - A scheduling scenario (employees, days, assignments, config)
 - Expected validation output (which violations must/must not be present)
@@ -8,7 +9,8 @@ Test fixtures for the `ScheduleValidator`. Each fixture is a JSON file that desc
 Used in two places:
 
 1. **Today**: run against the TypeScript `ScheduleValidator` via Vitest
-2. **Fase 2**: run against the Python CP-SAT solver for parity checks (same JSON, different runner)
+2. **Fase 2**: run against the Python CP-SAT solver for parity checks (same
+   JSON, different runner)
 
 ## Running
 
@@ -53,12 +55,15 @@ scheduling-corpus/
 | F25       | Edge: fully broken    | 1      |
 | **Total** |                       | **25** |
 
-Cross-month fixtures (F11–F13) are marked `"todo": true` — they will pass as `it.todo` until step B.0 wires `PreviousMonthHistory` into the validator.
+Cross-month fixtures (F11–F13) are marked `"todo": true` — they will pass as
+`it.todo` until step B.0 wires `PreviousMonthHistory` into the validator.
 
 ## Adding a fixture
 
-1. Edit `generate-fixtures.mjs` — add a `write('F##-slug', { ... })` call at the end.
-2. Run `node generate-fixtures.mjs` from this directory to regenerate `fixtures/`.
+1. Edit `generate-fixtures.mjs` — add a `write('F##-slug', { ... })` call at the
+   end.
+2. Run `node generate-fixtures.mjs` from this directory to regenerate
+   `fixtures/`.
 3. Run `pnpm test:corpus` to verify the new fixture passes.
 
 ### Fixture format
@@ -104,22 +109,27 @@ Cross-month fixtures (F11–F13) are marked `"todo": true` — they will pass as
 
 Matchers match by **shape**, NOT by message text. Fields:
 
-- `type`: `"coverage" | "night_block" | "rest" | "hours" | "constraint" | "validation"`
+- `type`:
+  `"coverage" | "night_block" | "rest" | "hours" | "constraint" | "validation"`
 - `severity`: `"error" | "warning" | "info"`
 - `employeeId`: optional — specific employee UUID or omit for "any"
 - `day`: optional — specific day number or omit for "any"
 
 ### Employee IDs
 
-Use deterministic IDs: `E0000000-0000-0000-0000-000000000001` (employee 1), `E0000000-0000-0000-0000-000000000002` (employee 2), etc.
+Use deterministic IDs: `E0000000-0000-0000-0000-000000000001` (employee 1),
+`E0000000-0000-0000-0000-000000000002` (employee 2), etc.
 
 ### Constraint: don't fix fixtures to match bugs
 
-If a fixture reveals a bug in the validator, document it in `docs/scheduling/decisions.md` and fix the validator in step B. Do NOT adjust the expected output to match wrong validator behavior.
+If a fixture reveals a bug in the validator, document it in
+`docs/scheduling/decisions.md` and fix the validator in step B. Do NOT adjust
+the expected output to match wrong validator behavior.
 
 ## Config defaults
 
-The `defaultConfig()` function (in `factory.ts`) returns values from `docs/scheduling/constraints.md §4`:
+The `defaultConfig()` function (in `factory.ts`) returns values from
+`docs/scheduling/constraints.md §4`:
 
 | Key                    | Value |
 | ---------------------- | ----- |

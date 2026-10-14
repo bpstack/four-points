@@ -1,9 +1,12 @@
 # AGENTS.md — Group Tracking (frontend)
 
+**Up:** [`frontend/AGENTS.md`](../../../AGENTS.md) — `frontend/` rules ·
+[root `AGENTS.md`](../../../../AGENTS.md) — shared rules and module map.
+
 > Frontend doc for the group tracking module. Covers the route structure,
 > Zustand store, tab/panel navigation pattern, component map, and React Query
 > hooks. For the data model, enums, endpoints, and role rules see
-> `backend/services/group/CLAUDE.md`.
+> `backend/services/group/AGENTS.md`.
 
 ## Route structure
 
@@ -11,9 +14,10 @@
 app/dashboard/groups/
 ├── page.tsx               # Groups list (GroupsListClient)
 ├── error.tsx / loading.tsx
+├── actions/
+│   └── getGroups.ts       # Server action that pre-fetches the list
 └── [id]/
-    ├── page.tsx           # Group detail (GroupDetailClient — server component wrapper)
-    └── actions/           # Server actions (if any)
+    └── page.tsx           # Group detail (GroupDetailClient — server component wrapper)
 ```
 
 ## State — Zustand (`useGroupStore`)
@@ -25,10 +29,13 @@ Key slices:
 
 - **`currentGroup`** (`GroupWithDetails | null`): The group being viewed in the
   detail page
+- **`payments` / `contacts` / `rooms` / `status`**: the group's sub-resources,
+  copied from the React Query data
 - **`activeTab`** (`string`): Active tab in GroupDetailClient
   (overview/payments/contacts/rooms/status/history)
-- **`activePanelId`** (`string | null`): Which side panel is open
-  (payment/contact/room/editGroup)
+- **`activePanelId`** (`string | null`): Which side panel is open (`'new'`,
+  `'edit-5'`…)
+- **`highlightId`** and per-resource `isLoading*` flags
 
 **Note:** The `GroupDetailClient.tsx` uses URL query params
 (`?tab=...&panel=...`) as the navigation source of truth — the store's
@@ -44,18 +51,18 @@ dashboard/groups/page.tsx
     └── CreateGroupPanel              ← slide-in panel to create a new group (277 lines)
 
 dashboard/groups/[id]/page.tsx
-└── GroupDetailClient                 ← main orchestrator for detail view (192 lines)
+└── GroupDetailClient                 ← main orchestrator for detail view (213 lines)
     ├── GroupHeader (layout/)         ← group name, status badge, action buttons
-    ├── TabNavigation (layout/)       ← tab switcher (128 lines)
+    ├── TabNavigation (layout/)       ← tab switcher; hides Contacts for roles without contact access (133 lines)
     ├── GroupDetailSummaryPanel (layout/) ← right sidebar: dates, pax, total, contacts (166 lines)
     │
     ├── OverviewTab                   ← summary cards + quick stats (302 lines)
     ├── PaymentsTab                   ← payment list + balance bar (544 lines — largest)
     ├── ContactsTab                   ← contact list
     ├── RoomsTab                      ← room type allocations (132 lines)
-    ├── StatusTab                     ← 4 status tracks as cards
-    │   ├── BookingCard               (245 lines)
-    │   ├── ContractCard              (235 lines)
+    ├── StatusTab                     ← 4 status tracks as cards + StatusTimeline
+    │   ├── BookingCard               (244 lines)
+    │   ├── ContractCard              (234 lines)
     │   ├── RoomingCard               (329 lines)
     │   └── BalanceCard               (186 lines)
     └── HistoryTab                    ← audit log (uses HistoryItem — 345 lines)
@@ -63,38 +70,35 @@ dashboard/groups/[id]/page.tsx
 
 Side panels (slide-in, controlled by store activePanelId):
     ├── PaymentPanel                  ← create/edit payment (379 lines)
-    ├── ContactPanel                  ← create/edit contact (178 lines)
+    ├── ContactPanel                  ← create/edit contact (172 lines)
     ├── RoomPanel                     ← create/edit room allocation (213 lines)
     └── EditGroupPanel                ← edit group master data (304 lines)
 
 Modal:
-    └── NotificationModal             ← create manual notification + email preview (481 lines)
+    └── NotificationModal             ← create a manual notification, now or scheduled (481 lines)
+
+List rows: cards/ (PaymentCard, ContactCard, RoomCard); shared/ (badges, empty and loading states)
 ```
 
 ## React Query — lib/groups/queries.ts
 
-All data fetching and mutations go through named hooks exported from
-`frontend/app/lib/groups/`.
+`groupsApi` (in `queries.ts`) has one method per endpoint. On top of it, the
+hooks:
 
-Key hooks:
+- **Queries:** `useGroup(id)` (detail with contacts + rooms + payments +
+  status), `useGroupPayments`, `useGroupContacts`, `useGroupRooms`,
+  `useGroupStatus`
+- **Mutations:** `useCreatePayment`, `useUpdatePayment`, `useDeletePayment`,
+  `useCreateContact`, `useUpdateContact`, `useCreateOrUpdateRoom`,
+  `useUpdateRoom`
 
-- **`useGroups(filters)`**: Paginated group list
-- **`useGroup(id)`**: Single group with full detail (joined contacts + rooms +
-  payments + status)
-- **`useGroupPayments(id)`**: Payment list for a group
-- **`useGroupContacts(id)`**: Contact list
-- **`useGroupRooms(id)`**: Room allocations
-- **`useGroupStatus(id)`**: 4 status tracks
-- **`useGroupHistory(id)`**: Audit history
-- **`useCreateGroup()`**: Mutation — create group
-- **`useUpdateGroup()`**: Mutation — update group master data
-- **`useCreatePayment()`**: Mutation — add payment to group
-- **`useUpdatePayment()`**: Mutation — update payment fields
-- **`useUpdatePaymentStatus()`**: Mutation — change payment status
-- **`useUpdateBookingStatus()`**: Mutation — update booking track
+Not everything goes through hooks: `GroupsListClient` runs its own `useQuery`
+over `groupsApi.getAll`, and creating, editing or deleting a group, the status
+cards and the history tab call `groupsApi` directly (then invalidate).
 
-Cache keys follow the pattern `['groups', id]`, `['groups', id, 'payments']`,
-etc.
+Cache keys come from `groupsKeys`: `['groups', 'list', filters]`,
+`['groups', id]`, `['groups', id, 'payments']`, `contacts`, `rooms`, `status`,
+plus the dashboard and upcoming-payment keys.
 
 ## Tab and panel navigation pattern
 
@@ -118,7 +122,7 @@ user's attention to the new item.
 card manages one of the four status tracks independently:
 
 - **BookingCard** — `booking_confirmed`, `booking_date` → maps to `GroupStatus`
-  on the master record too (design debt, see backend CLAUDE.md).
+  on the master record too (design debt, see the backend AGENTS.md).
 - **ContractCard** — `contract_status` + `contract_date`, `contract_notes`.
 - **RoomingCard** — `rooming_status` + rooming list upload/notes.
 - **BalanceCard** — `balance_status` + `balance_date`, `balance_notes`.
@@ -138,7 +142,7 @@ The tab also shows an overdue warning banner when any payment has status
 ## i18n
 
 Namespace: `groups`. Used throughout with `useTranslations('groups')`.
-Dictionary at `frontend/i18n/<locale>/groups.json`.
+Dictionary at `frontend/messages/<locale>/groups.json`.
 
 ## Known gotchas
 
@@ -151,25 +155,24 @@ Dictionary at `frontend/i18n/<locale>/groups.json`.
    source of truth.
 3. **Status duplication in the UI.** `GroupDetailClient.tsx` has an explicit
    TODO comment about `hotel_groups.status` vs `group_status.booking_confirmed`
-   duplication. If you touch booking status mutations, you must update both
-   fields (the backend handles this in
-   `group-status-controller.ts:updateBooking`).
+   duplication. If you touch booking status mutations, both fields must change
+   (the backend repositories sync them both ways).
 4. **`HistoryItem` renders old/new JSON diffs.** It parses the
    `old_value`/`new_value` strings from the history record. If the backend
    changes the JSON structure of history entries, update the renderer
    accordingly.
-5. **`NotificationModal` is 481 lines.** It includes a live email preview. If
-   SMTP is not configured on the backend, the modal will show success after
-   saving the notification but no email will be sent.
-6. **`group-admin` role.** This role sees the full group management UI.
-   `recepcionista` and `mantenimiento` can view groups (read-only) but the
-   create/edit UI should be gated. Currently the frontend does not gate these
-   controls — it relies on the backend returning 403. Add a frontend role check
-   if the UX needs to hide the controls visually.
+5. **`NotificationModal` is 481 lines.** It creates an in-app notification, sent
+   now or scheduled (`scheduled_for`). There is no email.
+6. **Roles in the UI.** Only the contacts are gated: `TabNavigation` uses
+   `canViewGroupContacts` (`app/lib/groups/contact-access.ts`) to leave out the
+   Contacts tab, and `?tab=contacts` falls back to the summary. The create/edit
+   controls are not gated — `recepcionista` and `mantenimiento` see them and the
+   backend answers 403. ⚠️ The group detail (`useGroup`) still receives the
+   contacts for every role: see the backend AGENTS.md.
 
 ## Cross references
 
-- `backend/services/group/CLAUDE.md` — data model, enums, endpoints, role
+- `backend/services/group/AGENTS.md` — data model, enums, endpoints, role
   middleware.
 - `frontend/app/stores/useGroupStore.ts` — Zustand store.
 - `frontend/app/lib/groups/queries.ts` — all React Query hooks.

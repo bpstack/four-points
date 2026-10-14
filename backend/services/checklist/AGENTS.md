@@ -1,5 +1,10 @@
 # AGENTS.md — Checklist
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[`frontend/AGENTS.md`](../../../frontend/AGENTS.md) — `frontend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../AGENTS.md) — shared
+rules and module map.
+
 > Single doc for the checklist module. Covers backend, frontend and the **JSON
 > sync rule** that is the module's main gotcha. No separate frontend file
 > because the state logic lives here.
@@ -17,7 +22,8 @@ that day's `run`.
   `reset_at`).
 - `checklist_step_state` — done/undone state per step of a run.
 - `checklist_step_comments` — comments per step.
-- `checklist_step_attachments` — per-step attachments (uploaded via Cloudinary).
+- `checklist_step_attachments` — per-step attachments (private files in
+  Cloudinary).
 - `checklist_event_log` — operational audit (check, uncheck, reset). **Purged
   weekly**, not long-term history.
 
@@ -97,9 +103,11 @@ There are also Markdown items (`.md` with YAML frontmatter) loaded via
 
 ```
 backend/services/checklist/
-   ├── checklist.service.ts         (92 lines — runs, steps, daily reset, purge)
-   ├── checklist-comments.service.ts (84 lines — comments + attachments)
-   └── checklist-content.ts          (54 lines — getValidStepIds + JSON cache)
+   ├── checklist.service.ts         (94 lines — runs, steps, daily reset, purge)
+   ├── checklist-comments.service.ts (121 lines — comments + attachments)
+   ├── checklist-content.ts          (64 lines — getValidStepIds + JSON cache)
+   └── attachment-response.ts        (16 lines — the API path the client gets
+                                       instead of the signed URL)
 
 backend/controllers/checklist/
    ├── checklist-controllers.ts                 (run state, toggle, reset, history)
@@ -109,7 +117,7 @@ backend/repositories/checklist/
    ├── checklist-repository.ts                  (runs, step_state, event_log, history)
    └── checklist-comments.repository.ts         (comments + attachments + counts)
 
-backend/routes/checklist/checklist-routes.ts    (61 lines — all endpoints)
+backend/routes/checklist/checklist-routes.ts    (75 lines — all endpoints)
 ```
 
 ### Run lifecycle
@@ -183,7 +191,9 @@ checked by their bytes).
   `canResetChecklist`)
 - **`GET/POST/DELETE /:id/steps/:stepId/comments[/:commentId]`**: Comment CRUD
 - **`GET/POST/DELETE /:id/steps/:stepId/attachments[/:attachmentId]`**:
-  Attachment CRUD (multer + Cloudinary)
+  Attachment CRUD (`requireStorage` + `singleImage('file')` + Cloudinary)
+- **`GET /api/checklists/attachments/:attachmentId/file`**: Serve one attachment
+  (private file, through the backend)
 
 The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`.
 Mantenimiento doesn't enter. Reset additionally requires `canResetChecklist`
@@ -201,7 +211,7 @@ frontend/app/dashboard/checklist/
 frontend/app/components/checklist/
    ├── ChecklistTOC.tsx                (282 lines — side index of the catalog)
    ├── ChecklistTasksContent.tsx       (261 lines — checkable checklist render + steps + comments)
-   ├── StepDetailsPanel.tsx            (292 lines — side detail panel of a step: comments, attachments)
+   ├── StepDetailsPanel.tsx            (299 lines — side detail panel of a step: comments, attachments)
    ├── ChecklistGuideContent.tsx       (renders items of type=guide)
    ├── ChecklistReferenceContent.tsx   (renders items of type=reference)
    ├── ChecklistHeader.tsx
@@ -242,14 +252,14 @@ components.
 
 `ChecklistTasksContent` drives the interaction: `GET /run`, renders
 sections+steps with checkboxes, mutations to the backend for toggle / reset /
-add comment / upload attachment. Optimistic updates with invalidation after
-success.
+add comment / upload attachment. The toggle is optimistic (`onMutate` snapshot,
+rollback on error, invalidation when settled).
 
 `ChecklistTOC.tsx` is the sidebar — collapsible categories, flat item list, link
 to the detail. On mobile the whole sidebar collapses (local state in
 `ChecklistClientWrapper`).
 
-`StepDetailsPanel.tsx` (292 lines) opens to the side when a step is selected:
+`StepDetailsPanel.tsx` (299 lines) opens to the side when a step is selected:
 shows comments + attachments for the step and lets you add/remove.
 
 ## Conventions and patterns
@@ -265,8 +275,11 @@ shows comments + attachments for the step and lets you add/remove.
 - **Auth:** every backend route sits behind `authenticateToken` +
   `excludeMantenimiento`. Mantenimiento doesn't enter the module. Reset requires
   `canResetChecklist` (admin / recepcionista).
-- **Attachment upload:** multer in-memory → Cloudinary. Wiring in
-  `addAttachmentController`.
+- **Attachments:** `requireStorage` + `singleImage('file')` (multer in-memory) →
+  Cloudinary as a **private** file, wired in `addAttachmentController`. The
+  client only gets the API path (`attachment-response.ts`) and reads the file
+  through `/attachments/:attachmentId/file`; the signed URL and the `public_id`
+  stay on the server.
 
 ## Known gotchas
 

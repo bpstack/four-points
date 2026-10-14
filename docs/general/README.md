@@ -100,9 +100,9 @@ if it does not match.
   conversations or messages they are not in (`admin_override`).
 - Passwords and tokens are hidden at the first three levels of each entry, and
   so is the SQL of a failed query (`err.sql`), which carries its values.
-- Failed logins keep the username that was typed (decided on 2026-10-12, left
-  as is): it is what reveals a brute-force attack, although someone may type
-  their password in that field.
+- Failed logins keep the username that was typed (decided on 2026-10-12, left as
+  is): it is what reveals a brute-force attack, although someone may type their
+  password in that field.
 
 **Database**
 
@@ -208,7 +208,8 @@ like this is in ADR-030.
   `SameSite=Lax` cookies are not sent and the CORS list rejects it. Under
   `four-points.stackbp.es` both work without touching code.
 
-**Test users** (created on 2026-10-04 to verify the pre-release fixes role by role)
+**Test users** (created on 2026-10-04 to verify the pre-release fixes role by
+role)
 
 | User        | Role            | Email                  |
 | ----------- | --------------- | ---------------------- |

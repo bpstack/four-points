@@ -1,5 +1,10 @@
 # AGENTS.md — Logbook
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[`frontend/AGENTS.md`](../../../frontend/AGENTS.md) — `frontend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../AGENTS.md) — shared
+rules and module map.
+
 > Single doc for the logbook module (hotel incident log / operational notes).
 > Covers backend and frontend. The state logic (per-user read/unread,
 > solved/pending, soft delete + trashed, history audit) is the densest part of
@@ -34,35 +39,38 @@ not exist. Solving/reopening updates `logbooks.is_solved`, `solved_at`,
 
 **Importance:** backend values `baja` / `media` / `alta` / `urgente`. **Frontend
 uses `low` / `medium` / `high` / `critical`** and maps via
-`mapPriorityToBackend()` in `LogbooksList.tsx`. **Gotcha:** if you add a new
-level, update the mapping on both sides — there's no shared enum.
+`mapPriorityToBackend()`, defined twice: in `LogbooksList.tsx` and in
+`hooks/useLogbooks.ts`. **Gotcha:** if you add a new level, update the mapping
+on both sides — there's no shared enum.
 
 ## Backend — layout
 
 ```
 backend/services/logbook/
-   └── logbookHistory-service.ts    (104 lines — single service; helpers to write
+   └── logbookHistory-service.ts    (114 lines — single service; helpers to write
                                      into logbook_history around the repo's
                                      create/update/delete)
 
 backend/controllers/logbook/
-   ├── logbook-controllers.ts            (334 lines — CRUD + filters: all,
+   ├── logbook-controllers.ts            (~350 lines — CRUD + filters: all,
    │                                      byDepartment, byAuthor, byImportance,
    │                                      byDay, soft delete, history)
-   ├── logbookComments-controllers.ts    (298 lines — comment CRUD + history)
-   └── logbookReads-controllers.ts       (186 lines — read/unread, solve/reopen,
-                                          list readers and solvers)
+   ├── logbookComments-controllers.ts    (~320 lines — comment CRUD + history)
+   ├── logbookReads-controllers.ts       (~190 lines — read/unread, solve/reopen,
+   │                                      list readers and solvers)
+   └── logbook-errors.ts                 (error codes, e.g. LOGBOOK_ONLY_AUTHOR_UPDATE)
 
 backend/repositories/logbook/
-   ├── logbook-repository.ts                  (315 lines — includes getAllTrashedLogbooks)
-   ├── logbookHistory-repository.ts           (150 lines — generic addHistory for
+   ├── logbook-repository.ts                  (~315 lines — includes getAllTrashedLogbooks)
+   ├── logbookHistory-repository.ts           (~150 lines — generic addHistory for
    │                                            logbooks and comments)
    ├── logbookComments-repository.ts          (141 lines)
    ├── logbookCommentsHistory-repository.ts   (55 lines — writes to logbook_history
    │                                            with type = 'comment')
-   └── logbookReads-repository.ts             (248 lines — reads, solved, pending)
+   └── logbookReads-repository.ts             (~255 lines — reads, solved, pending;
+                                                writes their history rows)
 
-backend/routes/logbook/logbook-routes.ts      (143 lines)
+backend/routes/logbook/logbook-routes.ts      (150 lines; GET /trashed is handled inline)
 ```
 
 ### Main pattern — service + repository + controller
@@ -99,8 +107,8 @@ These are the flags that flip most often from the UI:
   `solved_at = NULL`, `solved_by = NULL`.
 
 Reads/solves also log to `logbook_history` (actions `read`, `unread`, `solve`,
-`reopen`). This gives the full audit: who read what note and when, who solved
-it, who reopened it.
+`reopen`), from `logbookReads-repository.ts`. This gives the full audit: who
+read what note and when, who solved it, who reopened it.
 
 ### Endpoints
 
@@ -109,12 +117,15 @@ Route prefix: `/api/logbooks` (mounted in `backend/index.ts`).
 - `POST /api/logbooks/` — Create logbook
 - `PUT /api/logbooks/:id` — Update (author only)
 - `DELETE /api/logbooks/:id` — Soft delete (author only)
-- `GET /api/logbooks/all` — All logbooks (filters via query)
+- `GET /api/logbooks/all` — All logbooks (filters via query: `date_from`,
+  `date_to`, `importance_level`, `include_trashed`, `limit`, `offset`)
 - `GET /api/logbooks/department/:departmentId` — Filter by department
 - `GET /api/logbooks/author/:authorId` — Filter by author
 - `GET /api/logbooks/priority/:importance` — Filter by importance
 - `GET /api/logbooks/day/:day` — Filter by day (YYYY-MM-DD)
-- `GET /api/logbooks/trashed` — List of deleted entries (soft delete recovery)
+- `GET /api/logbooks/trashed` — List of deleted entries (soft delete recovery).
+  ⚠️ Like `include_trashed`, the history and the comments of deleted entries, it
+  answers any role with access: only the screen hides them (`docs/TODO.md`)
 - `GET /api/logbooks/:logbookId/history` — Audit of the entry
 - `POST/GET/PUT/DELETE /api/logbooks/:logbookId/comments[/:id]` — Comment CRUD
 - `GET /api/logbooks/:logbookId/comments/:commentId/history` — Audit of a
@@ -167,15 +178,17 @@ frontend/app/lib/logbooks/
    └── hooks/useDepartments.ts
 ```
 
-### `useLogbooks(date, messages)` — the key hook
+### `useLogbooks({ date, enabled, messages })` — the key hook
 
 `useLogbooks` is where most of the feed logic lives. Takes the active date and a
 `messages` object with the i18n toast strings (injected from the container so
 the hook is i18n-agnostic). Returns:
 
-- `entries` — the day's logbooks.
+- `entries` (plus `isLoading`, `error`, `refetch`) — the day's logbooks.
+- `useReaders` — the readers query of one entry.
 - Mutations: `createLogbook`, `updateLogbook`, `deleteLogbook`, `toggleStatus`,
   `toggleRead`, `createComment`, `updateComment`, `deleteComment`.
+- `mapPriorityFromBackend` / `mapPriorityToBackend`.
 - Every mutation invalidates the day's query after the server responds + emits
   success/error toast. **No optimistic updates.**
 
@@ -194,15 +207,16 @@ Frontend         Backend
 'low'        ↔   'baja'
 ```
 
-`mapPriorityToBackend()` in `LogbooksList.tsx`. Per-priority styling in
-`getPriorityBackground()` — red borders for `critical`, orange for `high`,
-neutral for the rest.
+`mapPriorityToBackend()` in `LogbooksList.tsx` and `useLogbooks.ts`.
+Per-priority styling in `getPriorityBackground()` — red borders for `critical`,
+orange for `high`, neutral for the rest.
 
 ### Day picker
 
 `HorizontalDatePicker` from `@/app/ui/calendar/` shows a horizontal strip of
 days for the selected month. Active state is `(currentDate, selectedDay)`. The
-backend query uses `?day=YYYY-MM-DD`.
+day is fetched from `GET /api/logbooks/day/:day` (`YYYY-MM-DD`); date ranges use
+`/all?date_from=&date_to=` paged by `limit`/`offset`.
 
 ## Conventions and patterns
 
@@ -221,9 +235,10 @@ backend query uses `?day=YYYY-MM-DD`.
 
 ## Known gotchas
 
-1. **ES↔EN importance mapping:** two places define the strings (backend uses
-   ES, frontend uses EN). If you add a level, update both ends and the mapping
-   in `LogbooksList.tsx` + `getPriorityBackground()`.
+1. **ES↔EN importance mapping:** two places define the strings (backend uses ES,
+   frontend uses EN). If you add a level, update both ends and both copies of
+   the mapping (`LogbooksList.tsx`, `useLogbooks.ts`) +
+   `getPriorityBackground()`.
 2. **Only the author edits/deletes:** no admin override. If you need one in the
    future, put it in `services` with its own audit trail
    (`action: 'admin_override'`).

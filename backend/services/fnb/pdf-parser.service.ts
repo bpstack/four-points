@@ -1,4 +1,7 @@
-import pdfParse from 'pdf-parse'
+// The package entry (index.js) runs a debug block when imported from ESM: it
+// reads ./test/data/05-versions-space.pdf from the working directory and
+// crashes with ENOENT if it is missing. lib/ is the same function without it
+import pdfParse from 'pdf-parse/lib/pdf-parse.js'
 import { trackedCodesSet } from './fnb-categories.cache.js'
 import { isPdfBuffer } from '../uploads/pdf-signature.js'
 

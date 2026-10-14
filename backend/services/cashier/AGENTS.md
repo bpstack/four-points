@@ -1,8 +1,11 @@
 # AGENTS.md — Cashier (backend)
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../../AGENTS.md) — shared rules and module map.
+
 > Backend doc for the cashier module. Covers the data model, shift/day
 > lifecycle, role boundaries, and all endpoints. For the React UI see
-> `frontend/app/components/cashier/CLAUDE.md`.
+> `frontend/app/components/cashier/AGENTS.md`.
 
 ## What it does
 
@@ -111,11 +114,13 @@ patches.
 
 ## Role boundaries
 
-- **Read daily, shifts, vouchers** — all authenticated (excl. `mantenimiento`)
+- **Read a day, shifts, vouchers, payments, denominations** — all authenticated
+  (excl. `mantenimiento`)
 - **Create/update/close shifts, payments, denominations, vouchers** — `admin`,
   `recepcionista`, `group-admin` (`canManageCashier`)
 - **Reopen shifts or days, delete any resource** — `admin` only (`isAdmin`)
-- **Reports, history, stats** — `admin` (`canViewReports`)
+- **Reports, history, stats, the list of days, a shift's history** — `admin`
+  (`canViewReports`)
 
 `mantenimiento` role is excluded at the router level (`excludeMantenimiento`).
 
@@ -127,7 +132,7 @@ patches.
 - **PATCH** `/api/cashier/daily/:date/close` — canManageCashier · Close the day
 - **PATCH** `/api/cashier/daily/:date/reopen` — isAdmin · Reopen closed day
 - **GET** `/api/cashier/daily/:date/summary` — all · Day summary
-- **GET** `/api/cashier/daily` — all · Paginated list of days
+- **GET** `/api/cashier/daily` — canViewReports · Paginated list of days
 - **GET** `/api/cashier/reports/monthly/:year/:month` — canViewReports · Monthly
   aggregate
 - **GET** `/api/cashier/shifts` — all · Filtered list
@@ -137,18 +142,28 @@ patches.
 - **PATCH** `/api/cashier/shifts/:id/close` — canManageCashier · Close shift
 - **PATCH** `/api/cashier/shifts/:id/reopen` — isAdmin · Reopen shift
 - **PUT** `/api/cashier/shifts/:id/users` — isAdmin · Replace shift users
-- **DELETE** `/api/cashier/shifts/:id` — isAdmin · Delete (only if open)
-- **GET** `/api/cashier/shifts/:id/history` — all · Shift audit log
+- **DELETE** `/api/cashier/shifts/:id` — isAdmin · Delete (refused if closed)
+- **GET** `/api/cashier/shifts/:id/history` — canViewReports · Shift audit log
 - **GET/POST** `/api/cashier/shifts/:shiftId/payments` — all / canManageCashier
   · List / create payment
+- **GET** `/api/cashier/shifts/:shiftId/payments/summary` — all · Totals by
+  method
 - **PUT** `/api/cashier/shifts/:shiftId/payments` — canManageCashier · Bulk
   replace payments
+- **PATCH** `/api/cashier/payments/:id` — canManageCashier · Update payment
+- **DELETE** `/api/cashier/payments/:id` — isAdmin · Delete payment
 - **GET/POST** `/api/cashier/shifts/:shiftId/denominations` — all /
   canManageCashier · List / create denomination
 - **PUT** `/api/cashier/shifts/:shiftId/denominations` — canManageCashier · Bulk
   replace denominations
-- **GET/POST** `/api/cashier/vouchers` — all / canManageCashier · List /
-  (implicit via shift)
+- **PATCH** `/api/cashier/denominations/:id` — canManageCashier · Update
+  denomination
+- **DELETE** `/api/cashier/denominations/:id` — isAdmin · Delete denomination
+- **GET** `/api/cashier/vouchers` — all · List (vouchers are created on a shift,
+  there is no `POST /vouchers`)
+- **GET** `/api/cashier/vouchers/active` — all · Pending and justified vouchers
+- **GET** `/api/cashier/vouchers/stats` — canViewReports · Voucher stats
+- **GET** `/api/cashier/vouchers/:id` — all · Voucher detail
 - **POST** `/api/cashier/shifts/:shiftId/vouchers` — canManageCashier · Create
   voucher on shift
 - **PATCH** `/api/cashier/vouchers/:id` — canManageCashier · Update voucher
@@ -175,18 +190,20 @@ patches.
 1. **DB trigger handles daily totals.** Don't manually update `cashier_daily`
    totals — the trigger `trg_cashier_shift_update_daily` does it automatically
    after a shift UPDATE that changes those columns. **Three competing update
-   paths exist:** (a) the DB trigger, (b) `updateDailyTotals()` in
-   `cashier-shift-repository.ts` (called after saving payments/denominations),
-   (c) monthly reports calculated live. The trigger was fixed 2026-09-29 to
-   remove a LEFT JOIN row-multiplication bug.
+   paths exist:** (a) the DB trigger, (b) `recalculateTotals()` →
+   `updateDailyTotals()` in `cashier-shift-repository.ts` (called after saving
+   payments/denominations and on shift updates), (c) monthly reports calculated
+   live. The trigger was fixed 2026-09-29 to remove a LEFT JOIN
+   row-multiplication bug.
 2. **`can_close` is a computed field.** `getDetailsByDate` in the daily
-   repository computes whether all 4 shifts are closed and injects
-   `can_close: boolean` into the response. The controller trusts this field — it
-   does not re-query.
+   repository computes whether all 4 shifts are closed and the day is still
+   `open`, and injects `can_close: boolean` into the response. The controller
+   trusts this field — it does not re-query.
 3. **Voucher lifecycle:** A voucher created in a shift starts as `pending`. It
-   can be `justified` (money recovered / documented) or `cancelled` (annulled).
-   Once cancelled, it cannot be unjustified. Only `admin` can cancel or delete
-   vouchers.
+   can be `justified` (money recovered / documented) or `cancelled` (annulled),
+   and only from `pending`: both are final. Deleting also requires `pending`.
+   Only `admin` can cancel or delete vouchers. `justified_at` and `cancelled_at`
+   record when (`20260929_add_cashier_voucher_status_dates.sql`).
 4. **Payments `replaceAll` deletes first.** The bulk replace does a `DELETE`
    then `INSERT`. If the frontend sends an empty array, all payments for the
    shift are wiped. This is intentional (the cashier cleared the form).
@@ -197,7 +214,7 @@ patches.
 ## Cross references
 
 - `backend/models/cashier/index.ts` — all TypeScript types and enums.
-- `backend/middlewares/roleCheck.ts:106` — `canManageCashier` definition.
-- `backend/middlewares/roleCheck.ts:128` — `canViewReports` definition.
+- `backend/middlewares/roleCheck.ts` → `canManageCashier` (admin, recepcionista,
+  group-admin) and `canViewReports` (admin).
 - `backend/db-mysql/aiven/11_cashier.sql` — frozen schema baseline.
-- `frontend/app/components/cashier/CLAUDE.md` — UI, PDF export, React Query.
+- `frontend/app/components/cashier/AGENTS.md` — UI, PDF export, React Query.

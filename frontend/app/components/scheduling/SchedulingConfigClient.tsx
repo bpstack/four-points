@@ -27,13 +27,7 @@ import { PresenciasTab } from './config/PresenciasTab'
 import 'react-day-picker/style.css'
 
 type TabType =
-  | 'employees'
-  | 'totals'
-  | 'general'
-  | 'rules'
-  | 'requests'
-  | 'shift-stats'
-  | 'presencias'
+  'employees' | 'totals' | 'general' | 'rules' | 'requests' | 'shift-stats' | 'presencias'
 
 const VALID_TABS: TabType[] = [
   'employees',

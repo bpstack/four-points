@@ -1,5 +1,10 @@
 # AGENTS.md — F&B / Restaurant
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[`frontend/AGENTS.md`](../../../frontend/AGENTS.md) — `frontend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../AGENTS.md) — shared
+rules and module map.
+
 > Food & Beverage module. Recent (2026-05) and evolving. Main tab in production:
 > **Daily Revenue** (Opera PDF parsing + manual entry). The Inventory / Orders /
 > Stats tabs are **mocked** placeholders. **Single file** because the module is
@@ -21,24 +26,24 @@ header (`summaryStats` in `page.tsx`) are hardcoded mock data.
 
 ```
 backend/services/fnb/
-   ├── pdf-parser.service.ts            (89 lines — parseOperaPdf: extracts date,
+   ├── pdf-parser.service.ts            (~130 lines — parseOperaPdf: extracts date,
    │                                      per-code entries, grand total)
-   └── fnb-categories.cache.ts          (39 lines — caches `trackedCodesSet`, the
+   └── fnb-categories.cache.ts          (~35 lines — caches `trackedCodesSet`, the
                                           active codes used to filter the PDF)
 
 backend/controllers/fnb/
-   ├── fnb-upload.controller.ts         (42 lines — POST /upload: orchestrates parser
+   ├── fnb-upload.controller.ts         (~50 lines — POST /upload: orchestrates parser
    │                                      + validation + persistence)
    ├── fnb-revenue.controller.ts        (40 lines — GET /monthly, /daily; DELETE /day/:date)
    └── fnb-manual.controller.ts         (39 lines — POST /entries — manual entry
                                           when no PDF is available)
 
 backend/repositories/fnb/
-   └── fnb.repository.ts                (155 lines — monthly pivot with CASE WHEN
+   └── fnb.repository.ts                (~185 lines — monthly pivot with CASE WHEN
                                           per code, totals computed in SQL)
 
 backend/routes/fnb/
-   └── fnb-routes.ts                    (34 lines)
+   └── fnb-routes.ts                    (44 lines)
 
 frontend/app/dashboard/restaurant/
    ├── page.tsx                         (184 lines — tab switcher + mocked summary stats)
@@ -46,9 +51,9 @@ frontend/app/dashboard/restaurant/
    └── error.tsx
 
 frontend/app/components/restaurant/tabs/
-   ├── DailyRevenueTab.tsx              (1113 lines — the real tab: PDF upload, manual
+   ├── DailyRevenueTab.tsx              (~1120 lines — the real tab: PDF upload, manual
    │                                      edit, monthly/daily charts)
-   ├── InventoryTab.tsx                 (413 lines — MOCK)
+   ├── InventoryTab.tsx                 (416 lines — MOCK)
    ├── OrdersTab.tsx                    (416 lines — MOCK)
    └── StatsTab.tsx                     (294 lines — MOCK)
 ```
@@ -76,15 +81,20 @@ The system assumes **fixed Opera codes** mapped to 7 stable columns. Defined as
 4. If the new code should affect the parser filter, add it to `fnb_category`
    (table) and restart the backend — `fnb-categories.cache.ts` reads it once.
 
-**`trackedCodesSet` code cache:** reads `fnb_category` on first use and keeps
-it in process memory for the life of the process. There is no TTL:
-`invalidateCategories()` is only called by the tests, so a code added via
-direct SQL is not seen until the backend restarts.
+**`trackedCodesSet` code cache:** reads `fnb_category` on first use and keeps it
+in process memory for the life of the process. There is no TTL:
+`invalidateCategories()` is only called by the tests, so a code added via direct
+SQL is not seen until the backend restarts.
 
 ## PDF parser — `parseOperaPdf(buffer)`
 
 Input: `Buffer` of the uploaded PDF (multer in-memory). Output:
-`{ date, entries[], grandTotal }`.
+`{ date, entries[], grandTotal }`. Failures throw `FnbPdfError`.
+
+**Guards before parsing:** the bytes must be a PDF (`isPdfBuffer`), only the
+first 20 pages are read (`MAX_PAGES`) and the parse gives up after 15 s
+(`PARSE_TIMEOUT_MS`, `withTimeout`). pdf.js cannot be aborted, so the page limit
+is what bounds the work left running after a timeout.
 
 **Algorithm:**
 
@@ -93,7 +103,8 @@ Input: `Buffer` of the uploaded PDF (multer in-memory). Output:
    that appears in Opera's filter line (`Calendar/Month to Date`). Returns
    `YYYY-MM-DD`. **If no match, returns null** and the controller responds 422 —
    **there's no fallback** because the PDF header date is +1 day off from the
-   hotel date and would silently corrupt records.
+   hotel date and would silently corrupt records. No tracked code in the PDF is
+   also a 422.
 3. **Entry extraction (`extractEntries`):** 3-phase state machine:
    - `codes` — collects lines matching `/^\d{5}$/`.
    - `descriptions` — skipped (descriptive text between codes and values).
@@ -105,8 +116,10 @@ Input: `Buffer` of the uploaded PDF (multer in-memory). Output:
 
 - The parser assumes Opera's exact PDF layout. If Opera changes the format, the
   heuristics need tuning. Not brittle, but not robust against Opera refactors.
-- 10 MB hard cap in multer. PDFs that big never come out of Opera in normal
-  conditions, so the cap is defensive, not functional.
+- 10 MB hard cap in multer (`routes/fnb/fnb-routes.ts`, PDF mimetype or `.pdf`
+  name; the bytes are checked by the parser). PDFs that big never come out of
+  Opera in normal conditions, so the cap is defensive, not functional. F&B only
+  reads the PDF: it is not stored, so the route has no `requireStorage`.
 
 ## Performance — pdf-parse v1
 
@@ -114,6 +127,15 @@ Input: `Buffer` of the uploaded PDF (multer in-memory). Output:
 OOMs on Render free tier. v2 loads full PDF.js into memory; v1 is light. If at
 some point Node is upgraded or the host changes, **test v2 before upgrading** —
 it might become viable again. Don't upgrade without measuring.
+
+**Import from `lib/`, never the package entry.** v1's `index.js` ships a debug
+block: imported from ESM, `module.parent` is undefined, so it reads
+`./test/data/05-versions-space.pdf` from the working directory, writes a `.txt`
+next to it, and crashes with ENOENT if the file is missing. That is why
+`backend/test/data/` used to exist. `pdf-parser.service.ts` imports
+`pdf-parse/lib/pdf-parse.js` (the same function without the block, typed in
+`types/pdf-parse.d.ts`), so no `test/` folder is needed. The real fixture is
+`tests/fnb/fixtures/opera-revenue-sample.pdf`.
 
 ## Endpoints
 
@@ -128,8 +150,8 @@ it might become viable again. Don't upgrade without measuring.
 - **`DELETE /api/fnb/day/:date`**: delete all records for a day
 
 The whole subroute sits behind `authenticateToken` + `canAccessFnb`. Allowed
-roles: `admin`, `recepcionista`, **`group-admin`** (the last one
-added in `00bab83`).
+roles: `admin`, `recepcionista`, **`group-admin`** (the last one added in
+`00bab83`).
 
 **About `/entries` (manual):** the manual path exists for when Opera doesn't
 generate the PDF, or when the day has F&B revenue without an Opera record
@@ -154,7 +176,7 @@ have visual gaps.
 
 ## Frontend — Daily Revenue tab
 
-`DailyRevenueTab.tsx` (1113 lines) is the only real tab. Internal structure:
+`DailyRevenueTab.tsx` (~1120 lines) is the only real tab. Internal structure:
 
 - **Upload PDF section**: drag & drop + apiClient call to `/upload`. Toast with
   the result.
@@ -166,7 +188,7 @@ have visual gaps.
   distribution (breakfast / lunch / dinner) across the month.
 - **Daily section**: drill-down into a day with all detail.
 
-The size (1113 lines) is high. If you're about to touch non-trivial UI here,
+The size (~1120 lines) is high. If you're about to touch non-trivial UI here,
 consider splitting by section. Not urgent.
 
 ## Mock tabs (Inventory / Orders / Stats)
@@ -188,26 +210,27 @@ monthlyExpenses) is also hardcoded — part of the mocked phase.
 
 ## Auth
 
-`canAccessFnb` allows: `admin`, `group-admin`, `recepcionista`.
-**Mantenimiento blocked.** No admin-only restrictions on endpoints — reception
-can upload PDFs and edit manually.
+`canAccessFnb` allows: `admin`, `group-admin`, `recepcionista`. **Mantenimiento
+blocked.** No admin-only restrictions on endpoints — reception can upload PDFs
+and edit manually.
 
 ## Known gotchas
 
 1. **pdf-parse v1 pinned.** Don't upgrade without testing OOM on Render.
-   Documented in commit `954043c`.
+   Documented in commit `954043c`. Import it from `pdf-parse/lib/pdf-parse.js`:
+   the package entry needs a `./test/data/` PDF in the working directory.
 2. **PDF date: filter line vs header.** The parser uses the filter
    (`Date DD/MM/YY`) **not the header**. The header is +1 day off and would
    corrupt data.
-3. **`trackedCodesSet` cache without TTL.** Changes to `fnb_category` reach
-   the parser only after a backend restart.
+3. **`trackedCodesSet` cache without TTL.** Changes to `fnb_category` reach the
+   parser only after a backend restart.
 4. **`CATEGORY_CODES` is hardcoded** in the repo — specific Opera codes for the
    hotel. If the hotel changes or Opera renumbers, touch here.
 5. **Floats: use `r2()`.** Any amount sum must pass through `r2()` before going
    to the frontend.
 6. **Mock tabs are not features.** If asked to "fix the inventory", confirm the
    scope — the UI exists but there's no real data behind it.
-7. **`DailyRevenueTab.tsx` at 1113 lines.** Watch if it grows; consider
+7. **`DailyRevenueTab.tsx` at ~1120 lines.** Watch if it grows; consider
    splitting by section.
 
 ## Cross references
@@ -215,4 +238,4 @@ can upload PDFs and edit manually.
 - `backend/middlewares/roleCheck.ts → canAccessFnb` — allowed roles.
 - `backend/models/fnb/fnb.models.ts` — module types.
 - `backend/scripts/import-fnb-2026.ts` — one-off script to import historical
-  data (if present — used in initial setup).
+  data (used in initial setup).

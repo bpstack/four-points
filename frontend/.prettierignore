@@ -2,6 +2,7 @@ node_modules
 .next
 dist
 *.log
+pnpm-lock.yaml
 # Checklist guides and references: Markdown rendered by the app; keep their
 # line layout until they are edited on purpose.
 content/checklist/**/*.md

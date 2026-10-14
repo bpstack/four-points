@@ -1,9 +1,12 @@
 # AGENTS.md — Scheduling (TS backend)
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../../AGENTS.md) — shared rules and module map.
+
 > Context for the backend TS piece of the scheduling module: validator, TS
 > constraints, registry, soft weights, solver-input builder, Python daemon
 > client, controllers and repository. The Python solver has its own file at
-> `backend/scheduling-solver/CLAUDE.md` — read that alongside this one when the
+> `backend/scheduling-solver/AGENTS.md` — read that alongside this one when the
 > task crosses the boundary.
 
 ## What the module does
@@ -12,8 +15,12 @@ Manages monthly staff schedules through **manual cell-by-cell editing with
 real-time validation**, plus optional **auto-generation** via a CP-SAT solver
 (Python).
 
+**Admin only.** The whole router runs `authenticateToken` + `isAdmin`; no other
+role reads the schedule (a read-only view for them is in `TODO.md`).
+
 **Month states:** `draft` (editable, validation surfaces warnings) ↔ `published`
-(read-only for staff).
+(locked: any edit of its cells, days or constraints answers 409 until
+`POST /months/:id/unpublish`).
 
 **Cell locking.** Assignments with `source_constraint_id` are **locked**: they
 come from approvals (vacations, IT, etc.) and can't be overwritten from the UI
@@ -24,8 +31,8 @@ anything, and the validator distinguishes "user" cells from "system" cells.
 **Constraint flow.** Manager creates a constraint (e.g. vacation) → admin
 approves → the matching shift gets written as an assignment **with
 `source_constraint_id`** (locked). If rejected, nothing happens to the grid. If
-an approved constraint is deleted, its derived assignments get unlocked /
-removed.
+an approved constraint is deleted, its assignments are unlocked by the foreign
+key (`ON DELETE SET NULL`) and keep their shift.
 
 **Retroactive constraints.** Admins can add constraints for past dates (e.g. log
 an IT absence after the fact). This is by design — the module doesn't assume
@@ -51,17 +58,19 @@ services/scheduling/
    ├── schedule-validator.ts           (~1000 lines — validates an existing month; uses
    │                                    constraints/ + per-employee logic in runFinalValidation)
    ├── build-solver-input.ts           (builds SolverInput from DB; lockedCells from 3 sources)
-   ├── solver-client.ts                (manages the Python daemon: state machine + semaphore)
-   ├── soft-weights.ts                 (soft-catalog numeric weights, kept in sync with Python)
+   ├── solver-client.ts                (manages the Python daemon: phases + semaphore)
+   ├── generated-rows.ts               (rows to insert after a generation)
+   ├── solver-errors.ts                (client-facing message per solver errorCode)
+   ├── soft-weights.ts                 (soft-catalog numeric weights)
    ├── constraints/
-   │   ├── base-constraint.ts          (abstract class with warn/softWarn/failure/success helpers)
+   │   ├── base-constraint.ts          (abstract class with warn/error/softWarn/failure/success)
    │   ├── registry.ts                 (ConstraintRegistry: register, getEnabled, checkAll)
-   │   ├── coverage.constraint.ts      (H1: minimum M/T/N coverage per day)
-   │   ├── consecutive-rest.constraint.ts  (H5: ≥2 rest in window of 7)
-   │   ├── max-consecutive-work.constraint.ts  (H4: max consecutive work days)
-   │   ├── monthly-libre.constraint.ts (H6: monthly libres [min, max])
-   │   ├── night-block.constraint.ts   (H2: night blocks [min, max])
-   │   └── employee-rules.constraint.ts (noWeekends, fixedShift, fixedDays)
+   │   ├── coverage.constraint.ts      (H1: minimum M/T/N coverage per day)      ← used by validate()
+   │   ├── employee-rules.constraint.ts (noWeekends, fixedShift, fixedDays)     ← used by validate()
+   │   ├── consecutive-rest.constraint.ts  (H5)  ┐
+   │   ├── max-consecutive-work.constraint.ts (H4) │ only exercised by
+   │   ├── monthly-libre.constraint.ts (H6 libres) │ tests/scheduling/constraints.test.ts;
+   │   └── night-block.constraint.ts   (H2)      ┘ validate() runs these rules inline
    ├── utils/
    │   ├── matrix.ts                   (isWorkShift, isLibreShift, getEmployeeShiftCounts...)
    │   └── day-helpers.ts              (getWeeksInMonth, areConsecutive)
@@ -99,14 +108,25 @@ interface ValidationResult {
 1. **Constructor:** receives `monthId`, `year`, `month`, config, shifts, days,
    employees, assignments, `previousMonthHistory`. Builds the
    `GeneratorContext`.
-2. **`validate()`:** instantiates a `ConstraintRegistry`, registers the relevant
-   constraints (`CoverageConstraint`, `EmployeeRulesConstraint`, etc.), runs
-   `checkAll(context)` → aggregates violations and soft penalties.
-3. **`runFinalValidation()`:** per-employee logic that doesn't fit a discrete
-   constraint (accumulated libre counts, weekend-off missing, M/T variety,
-   etc.). Emits warnings directly with `severity: 'error'` or `'warning'` and
-   accumulates soft penalty with the same convention
+2. **`validate()`:** runs `runFinalValidation()` first, then a
+   `ConstraintRegistry` with **only** `CoverageConstraint` and
+   `EmployeeRulesConstraint`, and merges violations and soft penalties.
+3. **`runFinalValidation()`:** the per-employee rules, inline, for every
+   employee without `fixedDays`. In order: monthly libres (min/max → warning,
+   distance to the preferred count → soft `libre_*_pref`); H4 max consecutive
+   work days (error, **inside the month only**); S4 short work blocks (warning +
+   soft, extended across the month boundary); H5 two consecutive rests in every
+   7-day window (**warning**, inside the month only); `T` on the last day of the
+   previous month → `M` on day 1 (error); `M`↔`T` rotation change at the month
+   boundary (error + soft `rotation_continuity_break`); `maxShiftPerMonth`;
+   weekly shifts; H2 night blocks (scattered or under 3 → error, with the
+   previous month's incomplete block counted). Accumulates soft penalty as
    `softPenaltyBreakdown[key] += ...`.
+
+The classes in `constraints/` for H2, H4, H5 and H6 are **not** what the live
+validator runs: they differ (H4 adds the previous month's streak, H5 is an error
+there) and only the unit tests use them. Change a rule in
+`runFinalValidation()`, or register the class there first.
 
 **Decision:** some rules live inside `runFinalValidation` because they need
 **per-employee accumulated state** that would be costly (or ugly) to thread
@@ -158,9 +178,11 @@ of its own (`W_NIGHT_BALANCE`, `W_ISOLATED_L`, `W_SHIFT_PRIORITY`,
 pointing at the file that currently emits that soft penalty. If you add a new
 soft weight, declare `@emitter` pointing at your constraint. If a weight is
 declared but no file emits it yet, mark it `@deferred <reason>` — this is how we
-reserve a key without implementing it yet (S2 weekly_shifts_off,
-weekend_imbalance, shift_variety_low, request_preference_unmet are in this state
-as of 2026-05-23).
+reserve a key without implementing it yet (`pref_weekly_shifts_off`,
+`weekend_imbalance`, `shift_variety_low`, `request_preference_unmet` are in this
+state). ⚠️ The `@emitter` of `libre_below_pref`, `libre_above_pref` and
+`pref_night_block_size_off` points at `monthly-libre` and `night-block` classes,
+but the live emitter is `runFinalValidation()` (checked 2026-10-13).
 
 The keys returned by the TS validator's `softPenaltyBreakdown` must **match
 exactly** the keys returned by the Python solver's `stats.softPenaltyBreakdown`.
@@ -212,16 +234,11 @@ the Python schema.
 ## `solver-client.ts`
 
 Wraps the persistent Python daemon. Details on the daemon side in
-`backend/scheduling-solver/CLAUDE.md`; here's what matters on the Node side.
+`backend/scheduling-solver/AGENTS.md`; here's what matters on the Node side.
 
-**State machine:**
-
-```
-idle → starting → ready → busy → ready → busy → ...
-                    ↑          ↓
-                    └──────────┘
-                  (per-request semaphore)
-```
+**Phases:** `idle` → `starting` → `ready`, back to `idle` if the process dies.
+There is no `busy` phase: a per-request semaphore lets one request at a time
+reach the `ready` daemon.
 
 **Guarantees:**
 
@@ -251,17 +268,22 @@ together.
 **`schedule-generate.controller.ts`** (~200 lines): does **one thing** —
 orchestrate generation. Flow:
 
-1. Validate that the month exists, is `draft`, has generated days, has
-   employees.
-2. `buildSolverInput()` → SolverInput JSON.
-3. `runSolver(input, abortSignal)` → SolverOutput.
-4. If `status === 'ok'`: apply `matrix` to `scheduling_assignments` **inside a
-   transaction** (negative keys — virtual days — are ignored).
+1. Validate the month: 404 if missing, 409 if `published`, 422 with no days.
+2. `buildSolverInput()` → SolverInput JSON; 422 if it has no employees.
+3. `runSolver(input, abortSignal)` → SolverOutput (`req.on('close')` aborts).
+4. If `status === 'ok'`: `applyGeneratedSchedule()` deletes, **in one
+   transaction**, every assignment of the month without `source_constraint_id`
+   and inserts the matrix plus the other locked cells (approved requests,
+   `fixedDays`) from `generatedRows()`. Those rows carry no
+   `source_constraint_id`, so they are editable after a generation. Negative
+   keys (virtual days) are ignored. Then `recalculateLibreNumbers()` per
+   employee (`L` → `L1`, `L2`…); a failure there is logged, not returned.
 5. If `status === 'infeasible'`: return 422 with `conflictingConstraints` and
    `suggestedRelaxations`.
-6. If `status === 'error'`: return 500 with the `errorCode`.
-7. Persist the full run in `scheduling_solver_runs` (input + output + stats +
-   time).
+6. If `status === 'error'`: return 500 with `errorCode` and the message from
+   `solver-errors.ts` (the solver's own message is only logged).
+7. Every outcome persists the run in `scheduling_solver_runs` (input + output +
+   stats + time).
 
 **Run log persistence is non-fatal:** if the insert into
 `scheduling_solver_runs` fails, the response to the user is still OK. Internal
@@ -286,15 +308,14 @@ When you touch this file:
   of another month, published or not.
 - `getSchedulableEmployeesForMonth(year, month)` applies `start_date`/`end_date`
   filtering. For raw employee lists (Totals tab, etc.) use
-  `getAllEmployeesWithStatus`.
+  `getAllEmployeesWithSchedulableStatus`.
 - `getPreviousMonthEndAssignments(year, month, N)` reads the previous month even
   when it's still `draft` — this is intentional so that Jan→Feb→Mar chains work
   without having to publish month by month.
 
-**Known bug (TODO.md):** `setSchedulableEmployees` does mass `DELETE` + `INSERT`
-and loses `start_date`/`end_date` in the process. Proposed fix: selective diff
-(only DELETE rows that leave, INSERT rows that arrive). See `TODO.md` § "Bug:
-setSchedulableEmployees".
+- `setSchedulableEmployees` deletes only the employees that leave and inserts
+  the new ones, so those that stay keep `start_date`, `end_date`,
+  `display_order` and `added_by`. It used to clear the table and lose them.
 
 ## Main endpoints
 
@@ -305,16 +326,18 @@ setSchedulableEmployees".
 - `POST /months/:id/reset` — Wipe all assignments, re-seed from approved
   constraints, in one transaction (`resetMonthAssignments`)
 - `POST /months/:id/unpublish` — Back to draft (controlled transition)
-- `PATCH /assignments/:id` — Update single cell (409 if locked)
-- `PUT /months/:id/assignments` — Bulk update; respects locks, 400 for a day
-  of another month
-- `POST /constraints/:id/approve` — Approve/reject + auto-sync assignments
-- `GET /employee-rules` — Rules list in camelCase for the panel
-- `PUT /scheduling/employees` — Set schedulable employees list (⚠️ see bug
-  above)
+- `PUT /assignments/:assignmentId` — Update single cell (409 if locked)
+- `PUT /months/:id/assignments` — Bulk update; respects locks, 400 for a day of
+  another month
+- `PUT /constraints/:constraintId/approve` — Approve/reject + auto-sync
+  assignments
+- `GET /rules` — Rules list in camelCase for the panel
+- `PUT /employees` — Set schedulable employees list
 
-Full routing in `routes/scheduling/scheduling-routes.ts` with
-`authenticateToken` + `isAdmin` / `excludeMantenimiento` per endpoint.
+All under `/api/scheduling`. Full routing in
+`routes/scheduling/scheduling-routes.ts`: `authenticateToken` + `isAdmin` for
+the whole router, `denyDemoWrites` on `/config`, `/shifts`, `/rules`,
+`/employees` and `/contracts`, and `demoGenerateLimiter` on `generate`.
 
 ## Shift types
 
@@ -416,7 +439,7 @@ per-employee state (libre counts, weekend off check, M/T variety…), inline it 
 
 ### Step 3 — Implement in the Python solver
 
-→ Full detail in `backend/scheduling-solver/CLAUDE.md` § "Adding a new
+→ Full detail in `backend/scheduling-solver/AGENTS.md` § "Adding a new
 constraint (Python side)". Summary:
 
 1. Create `backend/scheduling-solver/constraints/<rule_name>.py` with signature
@@ -487,21 +510,22 @@ previous month already breaks the constraint mathematically (e.g. 6 M shifts in
 a row at last month's close), the window is unsatisfiable and would produce an
 artificial INFEASIBLE. `rest.py` **skips** these "doomed" windows.
 
-**Debt:** the TS validator does NOT apply the same exemption yet. Possible
-drift: a month generated by the solver may surface spurious warnings when
-re-validated by the TS validator. When it bites, replicate the cross-month skip
-logic in `consecutive-rest.constraint.ts` and
-`max-consecutive-work.constraint.ts`. See `docs/scheduling/decisions.md` (entry
-2026-05-20) and `docs/scheduling/constraints.md §H5`.
+**Debt:** the live TS validator (`runFinalValidation()`) checks H4 and H5 only
+inside the month, so it neither needs that exemption nor sees a violation that
+crosses the boundary; H5 is a warning there. The unregistered classes
+(`consecutive-rest`, `max-consecutive-work`) do count the previous month for H4,
+without the exemption. Aligning them is pending: see
+`docs/scheduling/decisions.md` (entry 2026-05-20) and
+`docs/scheduling/constraints.md §H5`.
 
 ## Cross references
 
-- `backend/scheduling-solver/CLAUDE.md` — the Python solver (daemon, CP-SAT
+- `backend/scheduling-solver/AGENTS.md` — the Python solver (daemon, CP-SAT
   model, constraints, tests).
 - `docs/scheduling/constraints.md` — full textual specification. Source of
   truth.
 - `docs/scheduling/decisions.md` — decision log (why hard/soft, why the weights,
   what was tried); the 2026-04-22 entry keeps the original phases.
-- `docs/TODO.md` — known module bugs (setSchedulableEmployees, H5 cross-month
-  debt, etc.).
+- `docs/TODO.md` — open module items (read-only view for other roles, health
+  data kept in `scheduling_solver_runs`, solver phase 3).
 - `frontend/app/components/scheduling/AGENTS.md` — the UI side of the module.

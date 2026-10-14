@@ -16,10 +16,10 @@ install and run the whole project, see the [root README](../README.md).
 
 ## Commands
 
-| Command                                              | Does                                                  |
-| ---------------------------------------------------- | ----------------------------------------------------- |
-| `pnpm dev`                                           | http://localhost:3000, API from `NEXT_PUBLIC_API_URL` |
-| `pnpm build` · `pnpm start`                          | Production build                                      |
-| `pnpm typecheck` · `pnpm lint` · `pnpm format:check` | What CI runs                                          |
+| Command                             | Does                                                  |
+| ----------------------------------- | ----------------------------------------------------- |
+| `pnpm run dev`                      | http://localhost:3000, API from `NEXT_PUBLIC_API_URL` |
+| `pnpm run build` · `pnpm run start` | Production build                                      |
+| `pnpm run verify`                   | What CI runs: lint (no warnings), format check, types |
 
 The product documentation lives in [`docs/`](../docs/general/README.md).

@@ -15,9 +15,9 @@ away. Every morning the lists start fresh.
 ## Who uses it
 
 Every role **except `mantenimiento`**. Anyone with access ticks and unticks
-steps and adds comments or images. Restarting a checklist by hand is for
-`admin` and `recepcionista`. A comment or image can be deleted by
-its author or by an `admin`.
+steps and adds comments or images. Restarting a checklist by hand is for `admin`
+and `recepcionista`. A comment or image can be deleted by its author or by an
+`admin`.
 
 ## What it can do
 
