@@ -217,7 +217,7 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       valores iguales (fechas, nulos). _Visto el 2026-10-11._
 - [ ] **Checklist: el reinicio manual no funciona** — `resetRun` cierra el run y
       crea otro del mismo día, pero la clave única
-      `uk_run (hotel_id,     checklist_id, hotel_date)` lo impide: 500. Después
+      `uk_run (hotel_id, checklist_id, hotel_date)` lo impide: 500. Después
       `getOrCreateRun` devuelve el run cerrado y los cambios del día se escriben
       en él. Sin transacción ni test. En Aiven nadie lo ha usado (0 cierres
       manuales) y la pantalla no lo llama: decidido el 2026-10-11 dejar el
@@ -256,9 +256,9 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       2026-10-05._
 - [ ] **`20260512_disable_demo_user.sql` desactivaría la cuenta demo** si se
       volviera a ejecutar
-      (`UPDATE users SET is_active = 0 WHERE username =     'demo'`).
-      `setup:local` no la ejecuta (es anterior al baseline); no aplicarla a
-      mano. _Comprobado el 2026-10-05._
+      (`UPDATE users SET is_active = 0 WHERE username = 'demo'`). `setup:local`
+      no la ejecuta (es anterior al baseline); no aplicarla a mano. _Comprobado
+      el 2026-10-05._
 - [ ] **Errores que aún llegan sin traducir** — los códigos del backend ya se
       traducen en el cliente (`app/lib/helpers/errorCodeMessage.ts`; un test
       exige texto en es y en para cada `ERROR_CODES.X` y cada `code: 'X'`).
@@ -334,10 +334,10 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       el 2026-10-12, y en el deploy preview de 72b5d3c el 2026-10-13._
 - [ ] **Parking: `SpotType` no coincide con la BD** — en
       `backend/models/parking/index.ts` es
-      `standard | large | handicapped |     electric`; el `ENUM` de
+      `standard | large | handicapped | electric`; el `ENUM` de
       `parking_spots.spot_type` es
-      `normal | ancha |     mas_ancha | esquina | accesible | estrecha_bicis`.
-      El tipo no protege nada hoy. _Comprobado por mí el 2026-10-13._
+      `normal | ancha | mas_ancha | esquina | accesible | estrecha_bicis`. El
+      tipo no protege nada hoy. _Comprobado por mí el 2026-10-13._
 - [ ] **Solver: el venv local no coincide con producción** — en el equipo
       principal corre Python 3.13.5 y `.python-version` fija 3.11, y no tiene
       `pytest`, así que la suite de Python no se puede lanzar. Recrearlo con
