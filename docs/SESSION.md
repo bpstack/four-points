@@ -39,18 +39,19 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
   migraciones `20261011_keep_group_history_on_delete.sql` y
   `20261012_unique_invoice_supplier_number.sql`, aplicadas en Aiven. En `main`
   desde el PR #28.
-- **`main` al día con la rama** desde el PR #30 (2026-10-14, merge `9b33943`):
-  las tareas programadas se ponen al día al arrancar y el pago automático del
-  día 10 funciona (ADR-046, comprobado en preview y producción); los errores de
-  `auth` y de los middlewares llevan `code`; el historial de grupos solo anota
-  lo que cambia.
-- **Fechas y horas (ADR-047, en la rama, pendiente de `main`):** el backend
-  corre en UTC en cualquier máquina; «hoy» y el día de un instante se calculan
-  en Madrid; las horas de parking son el reloj del hotel. Los historiales
-  muestran fechas legibles y estados traducidos.
-- **Rama `opencode-tasks`:** trabajo delegado a OpenCode con una directriz
-  cerrada (ficheros permitidos, tabla de cambios, verificación); se revisa, se
-  commitea y entra en la rama de preview con fast-forward.
+- **`main` al día con la rama** desde el PR #31 (2026-10-14, merge `4c4567a`),
+  comprobado en preview y producción:
+  - PR #30: las tareas programadas se ponen al día al arrancar y el pago
+    automático del día 10 funciona (ADR-046); los errores de `auth` y de los
+    middlewares llevan `code`; el historial de grupos solo anota lo que cambia.
+  - PR #31: fechas y horas (ADR-047). El backend corre en UTC en cualquier
+    máquina; «hoy» y el día de un instante se calculan en Madrid; las horas de
+    parking son el reloj del hotel. Los historiales muestran fechas legibles y
+    estados traducidos.
+- **Rama local `opencode-tasks`** (solo en el PC principal, no se publica):
+  trabajo delegado a OpenCode con una directriz cerrada (ficheros permitidos,
+  tabla de cambios, verificación); se revisa, se commitea y entra en la rama de
+  preview con fast-forward.
 
 ## ⚠️ Empieza por aquí
 
