@@ -29,8 +29,8 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
   volcado de Aiven (ADR-048); en `main` desde el PR #32, que añadió su CA. Aiven
   sigue encendido como vuelta atrás hasta el 21 de diciembre de 2026.
 - **Renombrado a `remote`, terminado** (2026-11-16): preview y producción usan
-  `REMOTE_DB_*` y `DB_ENVIRONMENT=remote` (PR #33 en `main`), y el código ya no
-  lee `AIVEN_*` ni acepta el preset `aiven`.
+  `REMOTE_DB_*` y `DB_ENVIRONMENT=remote` (PR #33 y #34 en `main`), y el código
+  ya no lee `AIVEN_*` ni acepta el preset `aiven`.
 - **Local:** `pnpm setup:local` instala desde cero con admin completo, datos
   ficticios y la base de horarios de la demo (`scheduling-seed.sql`).
 - **Repositorio original:** `four-points-archive`, archivado y privado.
@@ -77,10 +77,8 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 
 ## Siguiente
 
-1. **Llevar a `main` el commit que quita los nombres viejos** (ADR-048): push de
-   la rama, comprobar que el preview arranca y PR.
-2. **Vigilar la memoria del servidor de la BD** la primera semana.
-3. **Cuando Aiven se apague:** quitar su CA de
+1. **Vigilar la memoria del servidor de la BD** la primera semana.
+2. **Cuando Aiven se apague:** quitar su CA de
    `backend/config/certs/ca-certificate.pem`.
 
 Y de «Después de publicar» de `TODO.md`, por prioridad:
