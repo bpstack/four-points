@@ -23,12 +23,12 @@ backend/db-mysql/
 │   ├── 20251220_add_backoffice.sql
 │   ├── 20251222_add_user_avatar_columns.sql
 │   ├── … (chronological order)
-│   ├── apply-migration.sh  # Applies one migration to local or Aiven
+│   ├── apply-migration.sh  # Applies one migration to local or remote
 │   ├── local-env.sh        # Local credentials from backend/.env, sourced by the others
 │   ├── backup-local.sh     # Dumps the local DB into backup/
 │   ├── check-collation.sh  # Shows the local DB collation
 │   └── recreate-local.sh   # ⚠️ Drops the local DB and runs MASTER_INSTALL.sql only
-├── backup/            # DB dumps (local + Aiven), git-ignored; backup.ps1
+├── backup/            # DB dumps (local + remote), git-ignored; backup.ps1
 ├── MASTER_INSTALL.sql # Runs all aiven/ files in order. Empty DB only.
 ├── MIGRATIONS_POLICY.md
 ├── INDEX.md           # Full table index + incremental migration log
@@ -48,11 +48,12 @@ fixes, no incremental scripts, no admin. Use `pnpm setup:local` instead.
 - **New schema change**: New file in `scripts/YYYYMMDD_<description>.sql`.
   Idempotent. Applied to live DB.
 - **Register in `INDEX.md`**: Add a row to the "Migraciones incrementales"
-  table: date, file, description, status per env (`✅ local · ✅ Aiven`,
-  `⏳ pendiente`).
+  table: date, file, description, status per env (`✅ local · ✅ remota`,
+  `⏳ pendiente`). Rows up to 2026-10-14 say `Aiven`, the remote database until
+  2026-11-16; the current one was loaded from its dump, so they hold for it.
 - **Never modify a committed script**: If something went wrong, create a new
   `YYYYMMDD_fix_…sql` that corrects it.
-- **Apply order**: Local first, then Aiven, with `scripts/apply-migration.sh`
+- **Apply order**: Local first, then remote, with `scripts/apply-migration.sh`
   (see "Applying a migration"). Update `INDEX.md` status after each.
 - **Charset / collation**: Always `utf8mb4` / `utf8mb4_0900_ai_ci`.
 
@@ -109,33 +110,36 @@ has data.** They will overwrite or duplicate rows.
 ## Applying a migration
 
 `scripts/apply-migration.sh` runs one `scripts/YYYYMMDD_*.sql` against local or
-Aiven. It reads the credentials from `backend/.env` (`LOCAL_DB_*`, or
-`AIVEN_DB_*` and `AIVEN_PASSWORD`), passes the password through `MYSQL_PWD` so
-it never shows in the command line, and verifies Aiven's TLS certificate with
-`config/certs/ca-certificate.pem`. It refuses any other file.
+remote. It reads the credentials from `backend/.env` (`LOCAL_DB_*` or
+`REMOTE_DB_*`; the old `AIVEN_*` names are read when the new ones are missing),
+passes the password through `MYSQL_PWD` so it never shows in the command line,
+and verifies the remote TLS certificate with `config/certs/ca-certificate.pem`.
+It refuses any other file.
 
 ```bash
 cd backend/db-mysql/scripts
 ./apply-migration.sh local 20261004_add_messages_to_notifications_module.sql --dry-run
 ./apply-migration.sh local 20261004_add_messages_to_notifications_module.sql
-./apply-migration.sh aiven 20261004_add_messages_to_notifications_module.sql --dry-run
-./apply-migration.sh aiven 20261004_add_messages_to_notifications_module.sql
+./apply-migration.sh remote 20261004_add_messages_to_notifications_module.sql --dry-run
+./apply-migration.sh remote 20261004_add_messages_to_notifications_module.sql
 ```
 
 - `--dry-run` only checks the connection and prints the target; nothing runs.
 - Each script prints its own result (a skip message or the new definition), so
   the output shows whether it changed anything.
 - Running it twice is the idempotency check: the second run must skip.
-- Then set the row's status in `INDEX.md` (`✅ local · ✅ Aiven`).
+- Then set the row's status in `INDEX.md` (`✅ local · ✅ remota`).
 
-## Connecting to Aiven (production)
+## Connecting to the remote database (production)
 
 ```bash
 mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem hotel_db
 ```
 
-Host, port, user and password are the `AIVEN_DB_*` and `AIVEN_PASSWORD`
-variables of `backend/.env`. SSL required.
+Host, port, user and password are the `REMOTE_DB_*` variables of `backend/.env`.
+TLS required. It is a self-managed MySQL 8.4 (ADR-048), shared by production and
+preview; `ca-certificate.pem` also keeps the CA of Aiven, the previous host,
+until that service is retired.
 
 ## DB at a glance
 
@@ -159,8 +163,9 @@ variables of `backend/.env`. SSL required.
 ## Backups
 
 Dumps go to `backup/` and are never committed (`.gitignore`): they hold real
-data. Make them with `backup/backup.ps1` (local and Aiven) or
-`scripts/backup-local.sh`. Every script reads the credentials from
+data. Make them with `backup/backup.ps1` (`-Target local`, `remote` or `both`)
+or `scripts/backup-local.sh`. The remote database has no scheduled backups: dump
+it before a schema migration. Every script reads the credentials from
 `backend/.env` (`scripts/local-env.sh` for the local ones); none may carry a
 password.
 

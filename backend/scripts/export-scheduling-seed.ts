@@ -6,7 +6,7 @@
  * base»). pnpm setup:local loads that file, so a local install gets the same
  * fictitious employees, contracts and months as the public demo.
  *
- * Only reads: SELECTs on the database of DB_ENVIRONMENT (aiven by default).
+ * Only reads: SELECTs on the database of DB_ENVIRONMENT (remote by default).
  * The employees are users: they are exported with a bcrypt hash of a random
  * password nobody knows, so they show in the grid but cannot sign in. Rows of
  * people no longer in the grid are left out, and every other reference to a

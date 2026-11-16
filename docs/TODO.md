@@ -46,18 +46,19 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
 
 ### 🟡 Media
 
-- [ ] **Borrar los datos de prueba de Aiven** — la BD de producción solo tiene
-      datos de prueba (incluidos usuarios de horarios con nombre de pila). Si el
-      borrado se retrasa o se da acceso a gente de fuera, antes renombrarlos
-      (`Empleado 01`…).
+- [ ] **Borrar los datos de prueba de la BD remota** — la BD de producción solo
+      tiene datos de prueba (incluidos usuarios de horarios con nombre de pila).
+      Si el borrado se retrasa o se da acceso a gente de fuera, antes
+      renombrarlos (`Empleado 01`…).
 - [ ] **Maintenance: las fotos no se borran con el parte** — ya son privadas
       (solo la API las sirve), pero el borrado lógico no las toca,
       `auto_delete_on_close` se guarda y nadie lo usa, y subir o borrar fotos no
       queda en el historial. _Comprobado por mí el 2026-09-28._
-- [ ] **Probar una restauración del backup de Aiven** antes de meter datos
-      reales — Aiven hace copias automáticas y existe
-      `backend/db-mysql/backup/backup.ps1`, pero no consta que se haya probado a
-      restaurar ninguna. Del plan archivado (`Global-Plan.md`, H3-8).
+- [ ] **Montar copias de la BD remota y probar una restauración** antes de meter
+      datos reales — desde el 2026-11-16 no hay copias automáticas (ADR-048);
+      existe `backend/db-mysql/backup/backup.ps1`, y el volcado se cargó dos
+      veces en la migración, pero no hay copia programada. Del plan archivado
+      (`Global-Plan.md`, H3-8).
 - [ ] **La retención de mensajes borra las conversaciones vacías** — el evento
       MySQL `cleanup_old_messages` borra cada día, además de los mensajes de más
       de 90 días, toda conversación sin mensajes, incluidas las recién creadas y

@@ -1,4 +1,4 @@
-﻿param([ValidateSet('aiven','local','both')][string]$Target = 'both')
+﻿param([ValidateSet('remote','local','both')][string]$Target = 'both')
 $ErrorActionPreference = 'Stop'
 $envFile = Join-Path $PSScriptRoot '..\..\.env'
 $backupDir = $PSScriptRoot
@@ -57,8 +57,14 @@ function Invoke-Backup($Label, $HostName, $Port, $User, $Pwd, $Database, $Ssl) {
   Write-Host "[$Label] OK $sz kb" -ForegroundColor Green
 }
 
-if ($Target -in @('aiven','both')) {
-  Invoke-Backup 'aiven' $envVars['AIVEN_DB_HOST'] $envVars['AIVEN_DB_PORT'] $envVars['AIVEN_DB_USER'] $envVars['AIVEN_PASSWORD'] $envVars['AIVEN_DB_NAME'] $true
+# Variable de la BD remota; si falta, su nombre anterior (transicion)
+function Get-Remote($Name, $Legacy) {
+  if ($envVars[$Name]) { return $envVars[$Name] }
+  return $envVars[$Legacy]
+}
+
+if ($Target -in @('remote','both')) {
+  Invoke-Backup 'remote' (Get-Remote 'REMOTE_DB_HOST' 'AIVEN_DB_HOST') (Get-Remote 'REMOTE_DB_PORT' 'AIVEN_DB_PORT') (Get-Remote 'REMOTE_DB_USER' 'AIVEN_DB_USER') (Get-Remote 'REMOTE_DB_PASSWORD' 'AIVEN_PASSWORD') (Get-Remote 'REMOTE_DB_NAME' 'AIVEN_DB_NAME') $true
 }
 if ($Target -in @('local','both')) {
   Invoke-Backup 'local' $envVars['LOCAL_DB_HOST'] $envVars['LOCAL_DB_PORT'] $envVars['LOCAL_DB_USER'] $envVars['LOCAL_DB_PASSWORD'] $envVars['LOCAL_DB_NAME'] $false

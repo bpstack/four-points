@@ -11,7 +11,7 @@
  *
  * Uso:
  *   pnpm demo:user               (BD local)
- *   pnpm demo:user:aiven         (Aiven)
+ *   pnpm demo:user:remote        (BD remota)
  */
 
 import bcrypt from 'bcrypt'

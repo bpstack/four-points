@@ -87,6 +87,11 @@ db-mysql/
 > existiera la política de incrementales. Reconstruidos a posteriori desde git
 > para trazabilidad completa. Todos son idempotentes (no-op contra BD ya
 > actualizada).
+>
+> **Estado `Aiven`:** hasta el 2026-10-14 la BD remota (producción y preview)
+> estaba en Aiven. El 2026-11-16 se cargó su volcado en un MySQL 8.4 propio
+> (ADR-048), así que todo lo marcado `✅ Aiven` está también en la BD remota
+> actual. Las filas nuevas anotan `✅ local · ✅ remota`.
 
 | Fecha      | Archivo                                                | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                             | Estado                            |
 | ---------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
@@ -135,10 +140,12 @@ db-mysql/
 mysql -u root -p < MASTER_INSTALL.sql
 ```
 
-### Aiven (Producción)
+### BD remota (producción)
+
+Solo sobre un servidor vacío; contra la BD con datos, nunca. Host, puerto y
+usuario son las variables `REMOTE_DB_*` de `backend/.env`.
 
 ```bash
-# Ver aiven/aiven-conexion.md para detalles de conexión
 mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem < MASTER_INSTALL.sql
 ```
 
@@ -147,7 +154,7 @@ mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem < M
 ## Notas
 
 - **Collation**: `utf8mb4_0900_ai_ci` (MySQL 8.0+)
-- SSL requerido para Aiven (ca-certificate.pem)
+- TLS obligatorio en la BD remota (`ca-certificate.pem`)
 - **Política de migraciones**: ver
   [`MIGRATIONS_POLICY.md`](./MIGRATIONS_POLICY.md). Resumen: cambios de schema →
   script incremental idempotente en `scripts/` + registro en la tabla

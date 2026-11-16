@@ -7,7 +7,7 @@
 Lo que no encaje aquí es una decisión (a `DECISIONS.md`), un hallazgo (a su
 propio fichero) o ruido (se borra).
 
-**Última actualización:** 2026-10-14
+**Última actualización:** 2026-11-16
 
 ---
 
@@ -20,15 +20,22 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 `VERIFY.md`) están archivados; cómo recuperarlos, en ADR-041.
 
 - **Producción:** `four-points.stackbp.es` (Vercel) y
-  `api.four-points.stackbp.es` (Render), sobre Aiven. Demo pública activa
+  `api.four-points.stackbp.es` (Render), sobre la BD remota. Demo pública activa
   (`DEMO_MODE`), descrita en `docs/demo/README.md`.
 - **Preview:** `preview.four-points.stackbp.es` y
   `api-preview.four-points.stackbp.es`, desde
-  `claude/compassionate-planck-gh6aof`, sobre la misma BD de Aiven.
+  `claude/compassionate-planck-gh6aof`, sobre la misma BD remota.
+- **BD remota:** desde el 2026-11-16 es un MySQL 8.4 propio, cargado con el
+  volcado de Aiven (ADR-048); en `main` desde el PR #32, que añadió su CA. Aiven
+  sigue encendido como vuelta atrás hasta el 21 de diciembre de 2026.
+- **Renombrado a `remote`, a medias:** el código y la documentación ya usan el
+  preset `remote` y `REMOTE_DB_*`, y aceptan todavía `DB_ENVIRONMENT=aiven` y
+  `AIVEN_*`. Los servicios de Render siguen con los nombres viejos (ver
+  «Siguiente»).
 - **Local:** `pnpm setup:local` instala desde cero con admin completo, datos
   ficticios y la base de horarios de la demo (`scheduling-seed.sql`).
 - **Repositorio original:** `four-points-archive`, archivado y privado.
-- **Decisiones:** `DECISIONS.md`, hasta ADR-047.
+- **Decisiones:** `DECISIONS.md`, hasta ADR-048.
 - **Harness:** capa 1 en `backend/AGENTS.md` y `frontend/AGENTS.md`; el
   `AGENTS.md` raíz guarda lo común y los tres niveles se enlazan entre sí
   (ADR-042, ADR-043). La sesión se abre en la raíz y activa el Node de cada lado
@@ -37,8 +44,8 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 - **Revisión de OpenCode, cerrada el 2026-10-12:** sus 20 ramas `opencode/*`
   están fusionadas en esta rama (PR #7–#26) y probadas en preview; las
   migraciones `20261011_keep_group_history_on_delete.sql` y
-  `20261012_unique_invoice_supplier_number.sql`, aplicadas en Aiven. En `main`
-  desde el PR #28.
+  `20261012_unique_invoice_supplier_number.sql`, aplicadas en la BD remota. En
+  `main` desde el PR #28.
 - **`main` al día con la rama** desde el PR #31 (2026-10-14, merge `4c4567a`),
   comprobado en preview y producción:
   - PR #30: las tareas programadas se ponen al día al arrancar y el pago
@@ -71,7 +78,21 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 
 ## Siguiente
 
-«Después de publicar» de `TODO.md`, por prioridad:
+1. **Terminar el renombrado a `remote`** (ADR-048), en este orden:
+   - Push de la rama y comprobar que el preview arranca con los nombres viejos.
+   - En el servicio de preview de Render, crear `REMOTE_DB_HOST`,
+     `REMOTE_DB_PORT`, `REMOTE_DB_USER`, `REMOTE_DB_PASSWORD` y
+     `REMOTE_DB_NAME`, poner `DB_ENVIRONMENT=remote` y borrar las `AIVEN_*`;
+     comprobar el arranque y probar.
+   - PR a `main` y lo mismo en producción.
+   - En local, renombrar las mismas variables en `backend/.env`.
+   - Un último commit que quite la lectura de `AIVEN_*` y el alias `aiven` de
+     `config/db-config.ts`, `apply-migration.sh` y `backup.ps1`, y su test.
+2. **Vigilar la memoria del servidor de la BD** la primera semana.
+3. **Cuando Aiven se apague:** quitar su CA de
+   `backend/config/certs/ca-certificate.pem`.
+
+Y de «Después de publicar» de `TODO.md`, por prioridad:
 
 1. **Rotar las credenciales de producción** (BD, clave JWT, Cloudinary, claves
    de IA). Ninguna de ellas está en el historial, pero sí la contraseña en claro
@@ -92,9 +113,12 @@ Nada ahora mismo.
 - **`main` está protegida** (ruleset `protect-main`): solo entra por PR, con los
   checks `backend` y `frontend` en verde y como merge commit (sin squash ni
   rebase); no admite force push ni borrado. La rama de trabajo no tiene reglas.
-- **Preview y producción comparten la BD de Aiven** y las cookies de sesión: lo
+- **Preview y producción comparten la BD remota** y las cookies de sesión: lo
   que se prueba en preview cambia datos de producción, y entrar en preview
   sustituye la sesión de producción en ese navegador.
+- **La BD remota no tiene copias programadas** (ADR-048): antes de una migración
+  de esquema, volcado a mano con
+  `backend/db-mysql/backup/backup.ps1 -Target remote`.
 - **Preview y producción comparten `cron_job_runs`:** el primer backend que
   arranca después de la hora de una tarea la hace por los dos (ADR-046).
 - **La cuenta demo es un admin** (`users.is_demo = 1`): lo que no deba tocar se

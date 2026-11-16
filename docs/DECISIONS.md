@@ -830,7 +830,9 @@
 
 ## ADR-039 — La BD local vuelve como instalación documentada; Aiven sigue siendo la única compartida
 
-- **Estado:** ✅ aceptada (2026-10-05)
+- **Estado:** ✅ aceptada (2026-10-05) · 📌 la BD compartida y su nombre,
+  revisados por
+  [ADR-048](#adr-048--la-bd-compartida-pasa-a-un-mysql-propio-y-el-preset-se-llama-remote)
 - **Fecha:** 2026-10-05
 - **Decisión:**
   - **Aiven** sigue siendo la única BD del proyecto que se comparte: producción,
@@ -1080,3 +1082,55 @@
   - Queda con `CURDATE()` la vista `v_bo_suppliers_stats` (total del año en
     curso): solo falla la primera hora del 1 de enero.
   - Los tests corren en UTC en cualquier máquina (`vitest.config.ts`).
+
+## ADR-048 — La BD compartida pasa a un MySQL propio y el preset se llama `remote`
+
+- **Estado:** ✅ aceptada (2026-11-16)
+- **Fecha:** 2026-11-16
+- **Decisión:**
+  - **La BD compartida** (producción, preview y la demo pública) deja Aiven y
+    pasa a un MySQL 8.4 que administra el propietario en un servidor propio. Se
+    cargó con un volcado de Aiven y se comprobó que coinciden tablas, vistas,
+    triggers, rutinas, el evento y los usuarios. Preview cambió primero y
+    producción después, el 2026-11-16.
+  - **El preset se llama `remote`**, frente a `local`: variables
+    `REMOTE_DB_HOST`, `REMOTE_DB_PORT`, `REMOTE_DB_USER`, `REMOTE_DB_PASSWORD` y
+    `REMOTE_DB_NAME`; scripts `dev:remote` y `demo:user:remote`; destino
+    `remote` en `apply-migration.sh` y `backup.ps1`.
+  - **Transición:** mientras los servicios desplegados no cambien sus variables,
+    el código acepta `DB_ENVIRONMENT=aiven` y lee `AIVEN_*` cuando falta la
+    variable nueva (`config/db-config.ts`, con test). Se cambia preview, luego
+    producción, y después se quita el nombre viejo.
+  - **`db-mysql/aiven/` no se renombra:** es el baseline congelado
+    (`MIGRATIONS_POLICY.md`), no la descripción de dónde corre la base.
+  - **`ca-certificate.pem` lleva dos CA**, la del servidor nuevo y la de Aiven,
+    hasta que Aiven se apague.
+- **Motivo:** Aiven retira su plan gratuito de MySQL el 21 de diciembre de 2026
+  y el proyecto solo usa planes gratuitos; la base tiene datos de prueba y la
+  demo regenera los suyos, así que basta el mínimo coste. El nombre `remote`
+  dice qué es (la base que no está en este equipo) sin atarse a un proveedor:
+  con `aiven` habría que renombrar en cada mudanza o dejar un nombre falso.
+- **Rechazado:**
+  - Oracle Cloud «Always Free»: sube la versión de MySQL sola, la base no tiene
+    IP pública, el alta exige tarjeta y no ofrece PostgreSQL gratuito.
+  - Cambiar los nombres de golpe: entre el despliegue y el cambio de variables
+    el backend no arrancaría.
+- **Consecuencias:**
+  - **Lo administra el propietario:** no hay copias programadas (decisión suya:
+    es una demo en desarrollo); antes de una migración de esquema se hace un
+    volcado a mano con `backup.ps1`. Los parches de MySQL se suben a mano y el
+    servidor es un único punto de fallo.
+  - **Latencia:** la base ya no está en la ciudad del backend; cada consulta
+    suma unos 26 ms. Medido en las pantallas pesadas y en el reinicio de la
+    demo: asumible.
+  - **Configuración del servidor:** registro binario apagado (sin él, un usuario
+    sin `SUPER` puede crear triggers y rutinas), `sql_mode` por defecto, como en
+    local, y zonas horarias con nombre cargadas, que `sqlMadridDay` necesita
+    (ADR-047).
+  - **TLS:** se comprueba la cadena contra la CA, no el nombre del servidor,
+    igual que antes.
+  - **`INDEX.md`:** el estado `✅ Aiven` de las filas anteriores vale para la
+    base actual, que salió de su volcado; las nuevas anotan `remota`.
+  - Aiven queda encendido como vuelta atrás hasta su retirada; después se quita
+    su CA del `.pem`.
+- **Revisa:** ADR-039 en cuál es la BD compartida.

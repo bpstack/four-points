@@ -147,8 +147,8 @@ This file also covers the stack, commands, architecture and module docs of
 **L3** — estimated on 2026-09-28: there is login and user accounts, personal
 data (users, guest blacklist with photos, cashier) and own backend; the L3 level
 is declared by the owner as the target (`docs/DECISIONS.md` ADR-017), not the
-current state. **Re-estimate when:** Aiven starts storing real guest or staff
-data.
+current state. **Re-estimate when:** the remote database starts storing real
+guest or staff data.
 
 The level line is the same in the root `AGENTS.md` and in `backend/AGENTS.md`; a
 re-estimate changes all three. Paths below are relative to `frontend/`.

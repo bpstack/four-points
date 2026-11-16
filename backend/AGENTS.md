@@ -146,8 +146,8 @@ This file also covers the stack, commands, architecture and module docs of
 **L3** — estimated on 2026-09-28: there is login and user accounts, personal
 data (users, guest blacklist with photos, cashier) and own backend; the L3 level
 is declared by the owner as the target (`docs/DECISIONS.md` ADR-017), not the
-current state. **Re-estimate when:** Aiven starts storing real guest or staff
-data.
+current state. **Re-estimate when:** the remote database starts storing real
+guest or staff data.
 
 The level line is the same in the root `AGENTS.md`; a re-estimate changes both.
 Paths below are relative to `backend/`.
@@ -184,7 +184,8 @@ Paths below are relative to `backend/`.
 - **TypeScript 5.9.3**, ES modules (`"type": "module"`), run directly by **tsx**
   — no compile step. `pnpm build` only creates the Python venv for the
   scheduling solver; it is Render's build command.
-- **MySQL** through `mysql2`, against a local DB or Aiven (cloud).
+- **MySQL** through `mysql2`, against a local DB or the remote one (the shared
+  database of production and preview, a self-managed MySQL 8.4).
 - **Zod 4** for validation, **Vitest** for tests, **pino** for logs.
 - **Cloudinary** for images and PDFs. No email sending: `email-service.ts` and
   `nodemailer` were removed on 2026-10-02.
@@ -213,7 +214,7 @@ Lower risk, but verify when touched: `node-cron` 4.2.1, `express-rate-limit`
 ```bash
 pnpm dev              # tsx watch; DB from DB_ENVIRONMENT (default local)
 pnpm dev:local        # local MySQL
-pnpm dev:aiven        # Aiven cloud DB
+pnpm dev:remote       # remote DB (production and preview)
 pnpm start            # without watch
 pnpm setup:local      # fresh local install: tables, first admin, departments, mock data
 pnpm typecheck        # tsc --noEmit
@@ -225,7 +226,7 @@ pnpm verify           # lint + format:check + typecheck + test — what CI runs
 ```
 
 The port comes from `PORT` (4000 in `.env.example`; the code falls back to
-3000). `demo:user`, `demo:user:aiven` and `seed:scheduling:export` are one-off
+3000). `demo:user`, `demo:user:remote` and `seed:scheduling:export` are one-off
 scripts in `scripts/`.
 
 ## Architecture
@@ -242,7 +243,9 @@ index.ts → routes → controllers → services → repositories → models
   `controllers/<domain>/`, `services/<domain>/`, `repositories/<domain>/`,
   `validations/`, `models/<domain>/`.
 - **Database**: the pool is in `config/db.ts`; `config/db-config.ts` picks the
-  connection by `DB_ENVIRONMENT` (`local` by default, or `aiven`). Transactions
+  connection by `DB_ENVIRONMENT` (`local` by default, or `remote`, read from
+  `REMOTE_DB_*`). Until every deployed service is switched, `aiven` and the
+  `AIVEN_*` names are still accepted as a fallback (ADR-048). Transactions
   through `config/transaction.ts`.
 - **Errors**: Express 5 forwards async errors to the global handler in
   `index.ts`; module-specific codes in `config/error-codes.ts`.
@@ -285,11 +288,13 @@ The contract with the frontend is in the root `AGENTS.md`; here, where it lives.
 
 ## Database
 
-- Database `hotel_db`, local and on Aiven — **both have data**.
+- Database `hotel_db`, local and remote — **both have data**. The remote one is
+  a self-managed MySQL 8.4 with no scheduled backups (ADR-048): dump it with
+  `db-mysql/backup/backup.ps1` before a schema migration.
 - ⚠️ **Never** run `MASTER_INSTALL*.sql` or `db-mysql/aiven/NN_*.sql` against
   them: first-install scripts only. A fresh install is `pnpm setup:local`.
 - Any schema change goes in a new idempotent `db-mysql/scripts/YYYYMMDD_*.sql`,
-  applied to local and Aiven, plus a row in the "Migraciones incrementales"
+  applied to local and remote, plus a row in the "Migraciones incrementales"
   table of `db-mysql/INDEX.md`.
 - Policy, schema overview, roles and backups:
   [`db-mysql/AGENTS.md`](db-mysql/AGENTS.md). Read it before touching any table.
