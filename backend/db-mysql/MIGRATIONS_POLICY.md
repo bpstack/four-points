@@ -21,16 +21,17 @@ verdad: la secuencia ordenada de scripts en `backend/db-mysql/scripts/`.
    `backend/db-mysql/scripts/AAAAMMDD_<descripcion>.sql`. Idempotente.
    Ejecutable sobre BD viva.
 3. **Registro obligatorio en `INDEX.md`** (tabla "Migraciones incrementales")
-   con fecha, archivo, descripción, estado por entorno (`✅ local · ✅ Aiven`,
-   `⏳ pendiente`, etc).
+   con fecha, archivo, descripción, estado por entorno (`✅ local · ✅ remota`,
+   `⏳ pendiente`, etc). Hasta el 2026-10-14 las filas dicen `Aiven`, que era la
+   BD remota; la actual se cargó de su volcado el 2026-11-16.
 4. **Nunca modificar un script commiteado**. Si algo salió mal, crear nuevo
    script `AAAAMMDD_fix_…sql` que lo enmiende.
 5. Las migraciones **deben ser idempotentes**: protegerse con
    `information_schema.COLUMNS`, `INSERT IGNORE`, `CREATE TABLE IF NOT EXISTS`,
    etc. Plantilla en
    `scripts/20260519_add_scheduling_employee_display_order.sql`.
-6. Aplicar primero en **local**, luego en **Aiven**, con
-   `scripts/apply-migration.sh local|aiven <fichero> [--dry-run]` (lee las
+6. Aplicar primero en **local**, luego en la **remota**, con
+   `scripts/apply-migration.sh local|remote <fichero> [--dry-run]` (lee las
    credenciales de `backend/.env`; detalle en `AGENTS.md`, «Applying a
    migration»). Actualizar columna "Estado" de `INDEX.md`.
 7. Charset/collation siempre: `utf8mb4` / `utf8mb4_0900_ai_ci`.

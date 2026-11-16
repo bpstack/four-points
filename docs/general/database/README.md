@@ -1,9 +1,11 @@
 # Database
 
-Summary of the database, cross-referenced with Aiven on 2026-09-28. The source
-of truth for the schema and migrations is
-[`backend/db-mysql/`](../../../backend/db-mysql/); this document summarises and
-links to it. Project overview in [`../README.md`](../README.md).
+Summary of the database, cross-referenced with the live one on 2026-09-28. It
+was hosted on Aiven until 2026-11-16 and now runs on a self-managed MySQL 8.4
+(same schema and data, loaded from a dump). The source of truth for the schema
+and migrations is [`backend/db-mysql/`](../../../backend/db-mysql/); this
+document summarises and links to it. Project overview in
+[`../README.md`](../README.md).
 
 ## What problem it solves
 
@@ -20,8 +22,9 @@ without breaking existing data.
 
 ## What it contains
 
-**A single database, `hotel_db`, on MySQL 8 on Aiven**, with test data. There is
-no local development database. Today it has **66 tables and 3 views**.
+**A single shared database, `hotel_db`, on a self-managed MySQL 8.4**, with test
+data; production and preview both use it. A local one can be installed with
+`pnpm setup:local`. Today it has **66 tables and 3 views**.
 
 Tables by module:
 
@@ -66,30 +69,36 @@ Tables by module:
   misses.
 - **Character set**: `utf8mb4` with `utf8mb4_0900_ai_ci`, which does not
   distinguish case or accents when comparing texts.
-- **Time**: the Aiven server is in **UTC**. What the database calculates with
-  `NOW()` or `CURDATE()` runs 1–2 hours behind Madrid; the backend calculates
-  "today" in Madrid time on its own.
-- **Encrypted connection**: TLS with the Aiven certificate in
-  `backend/config/certs/`. It is the project's public CA certificate (no private
-  key) and names the Aiven project by its id; it stays in the repository because
-  the backend and `apply-migration.sh` need it (decided on 2026-10-12).
+- **Time**: every backend session runs in **UTC**. What the database calculates
+  with `NOW()` or `CURDATE()` runs 1–2 hours behind Madrid; the backend
+  calculates "today" in Madrid time on its own.
+- **Encrypted connection**: TLS, checked against the CA certificates in
+  `backend/config/certs/ca-certificate.pem`: the one of the current server and,
+  until that service is retired, the one of Aiven. They are public certificates
+  (no private key) and stay in the repository because the backend and
+  `apply-migration.sh` need them.
+- **Operations**: the server is managed by the owner. There are no scheduled
+  backups (the data is test data and the demo regenerates its own); a dump is
+  made by hand with `backend/db-mysql/backup/backup.ps1` before a schema change.
 
-**Migration status**: the 26 recorded in `INDEX.md` are applied on Aiven (the
+**Migration status**: the 26 recorded in `INDEX.md` were applied on Aiven (the
 last two, `20261011_keep_group_history_on_delete.sql` and
 `20261012_unique_invoice_supplier_number.sql`, applied and verified on
-2026-10-12).
+2026-10-12). `INDEX.md` has the current list; everything applied on Aiven came
+over with the dump.
 
 ## How information flows
 
 ```
-backend (repositories) ─► mysql2 pool ─► TLS ─► MySQL on Aiven (hotel_db)
+backend (repositories) ─► mysql2 pool ─► TLS ─► remote MySQL (hotel_db)
                                                    │
                                    triggers · procedures · daily event
 ```
 
-1. The backend reads `DB_ENVIRONMENT=aiven` and the `AIVEN_*` variables, opens a
-   pool with TLS and, on startup, tests the connection up to 3 times (Aiven may
-   take time to wake up).
+1. The backend reads `DB_ENVIRONMENT=remote` and the `REMOTE_DB_*` variables,
+   opens a pool with TLS and, on startup, tests the connection up to 3 times.
+   The former names (`aiven`, `AIVEN_*`) are still accepted while the deployed
+   services are switched over.
 2. Repositories run parameterised queries (`?`); some writes use transactions.
 3. Part of the work is done by the database alone: the parking triggers when
    inserting or changing a booking and the message cleanup event.
@@ -97,7 +106,8 @@ backend (repositories) ─► mysql2 pool ─► TLS ─► MySQL on Aiven (hote
 ## What is in `backend/db-mysql/`
 
 - **`aiven/`**: the 20 scripts of the base schema (`01`–`20`, plus `99` for
-  verification) and a copy of the Aiven certificate.
+  verification). The folder keeps the name of the former host; it is the frozen
+  base schema, not a description of where the database runs.
 - **`scripts/`**: the incremental migrations and utilities: applying a
   migration, local backup, local database recreation and collation check. All
   read the credentials from `backend/.env`. The one-off data fixes and the quick

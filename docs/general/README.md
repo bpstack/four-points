@@ -59,8 +59,8 @@ if it does not match.
 
 ## What data it handles
 
-- **MySQL 8** on Aiven, a single database (`hotel_db`) with test data, used by
-  both the deployment and development. Summary in
+- **MySQL 8.4**, self-managed on a VPS, a single database (`hotel_db`) with test
+  data, used by both the deployment and development. Summary in
   [`database/`](database/README.md); schema, scripts and migration policy in
   [`backend/db-mysql/`](../../backend/db-mysql/).
 - **Users and roles**: tables `users` and `roles`. Passwords are stored with
@@ -127,7 +127,7 @@ Browser ──────────────► Frontend  (Next.js · Verc
     │  fetch + cookies     ▼
     └──────────────────► Backend   (Express · Render)
                             │  routes → controllers → services → repositories
-                            ├──► MySQL        (Aiven)
+                            ├──► MySQL        (self-managed, VPS)
                             ├──► Cloudinary   (files)
                             └──► Python solver (scheduling, child process)
 ```
@@ -166,7 +166,7 @@ lockfile. Node ≥ 22.16.
 | -------- | ---------- | ----------------------------------------------------------------------- |
 | Frontend | Vercel     | `four-points.stackbp.es`, region `cdg1` (Paris)                         |
 | Backend  | Render     | `api.four-points.stackbp.es`. The build creates the solver's Python env |
-| DB       | Aiven      | MySQL with TLS; CA certificate in `backend/config/certs/`               |
+| DB       | VPS        | Self-managed MySQL with TLS; CA certificate in `backend/config/certs/`  |
 | Files    | Cloudinary |                                                                         |
 
 - **DNS**: `four-points.stackbp.es` is a CNAME to Vercel and
@@ -191,7 +191,7 @@ like this is in ADR-030.
 | -------- | ------ | ------------------------------------------------------------------------------ |
 | Frontend | Vercel | `preview.four-points.stackbp.es`, a project domain bound to the branch         |
 | Backend  | Render | service `four-points-api-preview` (free), `api-preview.four-points.stackbp.es` |
-| DB       | Aiven  | **the production database** — every write from preview is real                 |
+| DB       | VPS    | **the production database** — every write from preview is real                 |
 
 - **Render**: same root directory, build and start commands as
   `four-points-api`, deploys the branch on every commit. Environment variables
@@ -263,22 +263,22 @@ local admin `admin` / `fourpoints-local`) is in the root
 [`README.md`](../../README.md#run-it-locally). Day to day:
 
 ```bash
-cd backend && pnpm dev:local    # API on :4000 against the local MySQL (dev:aiven: against Aiven)
+cd backend && pnpm dev:local    # API on :4000 against the local MySQL (dev:remote: against the remote one)
 cd frontend && pnpm dev         # http://localhost:3000
 ```
 
 Backend variables: `PORT` (4000 locally), `NODE_ENV`, `SECRET_JWT_KEY`,
-`SALT_ROUNDS`, `DB_ENVIRONMENT` (`local` or `aiven`), `LOCAL_DB_*` or
-`AIVEN_DB_*` + `AIVEN_PASSWORD`, `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL` and
-`DEMO_MODE` (`true` only where the public demo runs). Frontend:
-`NEXT_PUBLIC_API_URL`, `NEXT_SERVER_API_URL` (optional), `NEXT_PUBLIC_APP_URL`,
-which the user creation route uses to accept the request origin, and
-`NEXT_PUBLIC_DEMO_MODE`, which shows the demo button on the login page.
+`SALT_ROUNDS`, `DB_ENVIRONMENT` (`local` or `remote`), `LOCAL_DB_*` or
+`REMOTE_DB_*`, `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL` and `DEMO_MODE`
+(`true` only where the public demo runs). Frontend: `NEXT_PUBLIC_API_URL`,
+`NEXT_SERVER_API_URL` (optional), `NEXT_PUBLIC_APP_URL`, which the user creation
+route uses to accept the request origin, and `NEXT_PUBLIC_DEMO_MODE`, which
+shows the demo button on the login page.
 
 **Tests**: `pnpm test` in `backend/` (also `test:watch` and `test:coverage`).
 Some suites (login, checklist, F&B, scheduling requests) use the configured
-database, which is the shared Aiven one: the F&B suite writes to the year 2099
-and deletes it afterwards. The solver's own tests are described in
+database, which may be the shared remote one: the F&B suite writes to the year
+2099 and deletes it afterwards. The solver's own tests are described in
 [`../scheduling/solver.md`](../scheduling/solver.md).
 
 **Languages**: Spanish (default) and English with next-intl, one JSON file per

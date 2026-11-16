@@ -252,8 +252,8 @@ Notes:
 **L3** — estimated on 2026-09-28: there is login and user accounts, personal
 data (users, guest blacklist with photos, cashier) and own backend; the L3 level
 is declared by the owner as the target (`docs/DECISIONS.md` ADR-017), not the
-current state. **Re-estimate when:** Aiven starts storing real guest or staff
-data.
+current state. **Re-estimate when:** the remote database starts storing real
+guest or staff data.
 
 The same level line is repeated in `backend/AGENTS.md` and `frontend/AGENTS.md`;
 a re-estimate changes all three.
@@ -331,5 +331,5 @@ When a new module grows complex enough to warrant its own doc:
 
 1. **Don't modify code without permission**: always ask before making code
    changes.
-2. **Database changes**: coordinate SQL migrations between local and Aiven
-   databases — see `backend/AGENTS.md` § Database.
+2. **Database changes**: coordinate SQL migrations between the local and the
+   remote database — see `backend/AGENTS.md` § Database.

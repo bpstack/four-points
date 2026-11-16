@@ -51,7 +51,7 @@ Demo» notice. Every blocked attempt is stored in `demo_activity_log`.
 - **`users.is_demo = 1`** marks the demo account. The access token carries
   `demo: true` only for that account, and a token refresh reads the flag again
   from the database. The account is created with `pnpm demo:user` (local) or
-  `pnpm demo:user:aiven`, with a random password nobody uses.
+  `pnpm demo:user:remote`, with a random password nobody uses.
 - **Module data** comes from `backend/db-mysql/mock-data.sql`: fictitious
   records with dates relative to the day of the reset, so the screens never look
   stale.
