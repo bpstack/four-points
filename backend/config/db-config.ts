@@ -29,12 +29,6 @@ interface DBConfig {
   ssl?: object
 }
 
-// Transition (ADR-048): the remote preset was called `aiven`, with AIVEN_*
-// variables. The deployed services still set the old names, so they are read
-// when the new ones are missing. Remove this, and the alias below, once every
-// service sets REMOTE_DB_* and DB_ENVIRONMENT=remote.
-const legacy = (name: string): string | undefined => process.env[name]
-
 // ========================================
 // 🎯 PRESETS DE CONFIGURACIÓN
 // ========================================
@@ -48,11 +42,11 @@ const presets: Record<string, DBConfig> = {
     database: process.env.LOCAL_DB_NAME || 'hotel_db',
   },
   remote: {
-    host: process.env.REMOTE_DB_HOST || legacy('AIVEN_DB_HOST') || '',
-    port: parseInt(process.env.REMOTE_DB_PORT || legacy('AIVEN_DB_PORT') || ''),
-    user: process.env.REMOTE_DB_USER || legacy('AIVEN_DB_USER') || '',
-    password: process.env.REMOTE_DB_PASSWORD || legacy('AIVEN_PASSWORD'),
-    database: process.env.REMOTE_DB_NAME || legacy('AIVEN_DB_NAME') || 'hotel_db',
+    host: process.env.REMOTE_DB_HOST || '',
+    port: parseInt(process.env.REMOTE_DB_PORT || ''),
+    user: process.env.REMOTE_DB_USER || '',
+    password: process.env.REMOTE_DB_PASSWORD,
+    database: process.env.REMOTE_DB_NAME || 'hotel_db',
     ssl: isDevelopment
       ? { rejectUnauthorized: false }
       : {
@@ -65,13 +59,12 @@ const presets: Record<string, DBConfig> = {
 // ========================================
 // 🔍 VALIDACIÓN Y SELECCIÓN DE ENTORNO
 // ========================================
-const requested = process.env.DB_ENVIRONMENT || 'local'
-export const environment = requested === 'aiven' ? 'remote' : requested
+export const environment = process.env.DB_ENVIRONMENT || 'local'
 const config = Object.hasOwn(presets, environment) ? presets[environment] : undefined
 
 // Validar que el entorno existe
 if (!config) {
-  throw new Error(`❌ Entorno no válido: ${requested}`)
+  throw new Error(`❌ Entorno no válido: ${environment}`)
 }
 
 // Validar credenciales críticas

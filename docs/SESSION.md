@@ -28,10 +28,9 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 - **BD remota:** desde el 2026-11-16 es un MySQL 8.4 propio, cargado con el
   volcado de Aiven (ADR-048); en `main` desde el PR #32, que añadió su CA. Aiven
   sigue encendido como vuelta atrás hasta el 21 de diciembre de 2026.
-- **Renombrado a `remote`, a medias:** el código y la documentación ya usan el
-  preset `remote` y `REMOTE_DB_*`, y aceptan todavía `DB_ENVIRONMENT=aiven` y
-  `AIVEN_*`. Los servicios de Render siguen con los nombres viejos (ver
-  «Siguiente»).
+- **Renombrado a `remote`, terminado** (2026-11-16): preview y producción usan
+  `REMOTE_DB_*` y `DB_ENVIRONMENT=remote` (PR #33 en `main`), y el código ya no
+  lee `AIVEN_*` ni acepta el preset `aiven`.
 - **Local:** `pnpm setup:local` instala desde cero con admin completo, datos
   ficticios y la base de horarios de la demo (`scheduling-seed.sql`).
 - **Repositorio original:** `four-points-archive`, archivado y privado.
@@ -78,16 +77,8 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 
 ## Siguiente
 
-1. **Terminar el renombrado a `remote`** (ADR-048), en este orden:
-   - Push de la rama y comprobar que el preview arranca con los nombres viejos.
-   - En el servicio de preview de Render, crear `REMOTE_DB_HOST`,
-     `REMOTE_DB_PORT`, `REMOTE_DB_USER`, `REMOTE_DB_PASSWORD` y
-     `REMOTE_DB_NAME`, poner `DB_ENVIRONMENT=remote` y borrar las `AIVEN_*`;
-     comprobar el arranque y probar.
-   - PR a `main` y lo mismo en producción.
-   - En local, renombrar las mismas variables en `backend/.env`.
-   - Un último commit que quite la lectura de `AIVEN_*` y el alias `aiven` de
-     `config/db-config.ts`, `apply-migration.sh` y `backup.ps1`, y su test.
+1. **Llevar a `main` el commit que quita los nombres viejos** (ADR-048): push de
+   la rama, comprobar que el preview arranca y PR.
 2. **Vigilar la memoria del servidor de la BD** la primera semana.
 3. **Cuando Aiven se apague:** quitar su CA de
    `backend/config/certs/ca-certificate.pem`.
