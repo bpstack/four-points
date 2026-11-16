@@ -97,8 +97,6 @@ backend (repositories) ─► mysql2 pool ─► TLS ─► remote MySQL (hotel_
 
 1. The backend reads `DB_ENVIRONMENT=remote` and the `REMOTE_DB_*` variables,
    opens a pool with TLS and, on startup, tests the connection up to 3 times.
-   The former names (`aiven`, `AIVEN_*`) are still accepted while the deployed
-   services are switched over.
 2. Repositories run parameterised queries (`?`); some writes use transactions.
 3. Part of the work is done by the database alone: the parking triggers when
    inserting or changing a booking and the message cleanup event.

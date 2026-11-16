@@ -111,10 +111,9 @@ has data.** They will overwrite or duplicate rows.
 
 `scripts/apply-migration.sh` runs one `scripts/YYYYMMDD_*.sql` against local or
 remote. It reads the credentials from `backend/.env` (`LOCAL_DB_*` or
-`REMOTE_DB_*`; the old `AIVEN_*` names are read when the new ones are missing),
-passes the password through `MYSQL_PWD` so it never shows in the command line,
-and verifies the remote TLS certificate with `config/certs/ca-certificate.pem`.
-It refuses any other file.
+`REMOTE_DB_*`), passes the password through `MYSQL_PWD` so it never shows in the
+command line, and verifies the remote TLS certificate with
+`config/certs/ca-certificate.pem`. It refuses any other file.
 
 ```bash
 cd backend/db-mysql/scripts

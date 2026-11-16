@@ -1,7 +1,6 @@
 // tests/config/db-config.test.ts
-// The remote preset was renamed from `aiven` (ADR-048). While the deployed
-// services still set the old names, both have to open the same connection:
-// a miss here takes production down at startup.
+// The remote preset reads REMOTE_DB_* and nothing else (ADR-048): a wrong name
+// here takes production down at startup.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
@@ -12,19 +11,12 @@ const REMOTE = [
   'REMOTE_DB_PASSWORD',
   'REMOTE_DB_NAME',
 ]
-const LEGACY = [
-  'AIVEN_DB_HOST',
-  'AIVEN_DB_PORT',
-  'AIVEN_DB_USER',
-  'AIVEN_PASSWORD',
-  'AIVEN_DB_NAME',
-]
 
 // Empty, not deleted: dotenv does not fill a variable that is already set, so
 // a developer's backend/.env cannot leak into the test
 async function load(env: Record<string, string>) {
   vi.resetModules()
-  for (const key of [...REMOTE, ...LEGACY]) vi.stubEnv(key, '')
+  for (const key of REMOTE) vi.stubEnv(key, '')
   for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value)
   return import('../../config/db-config.js')
 }
@@ -52,43 +44,23 @@ describe('config/db-config.ts remote preset', () => {
     expect(dbConfig.ssl).toBeDefined()
   })
 
-  it('still accepts DB_ENVIRONMENT=aiven and the AIVEN_* names', async () => {
-    const { dbConfig, environment } = await load({
-      DB_ENVIRONMENT: 'aiven',
-      AIVEN_DB_HOST: 'old.example.test',
-      AIVEN_DB_PORT: '23225',
-      AIVEN_DB_USER: 'old-user',
-      AIVEN_PASSWORD: 'old-secret',
-    })
-    expect(environment).toBe('remote')
-    expect(dbConfig).toMatchObject({
-      host: 'old.example.test',
-      port: 23225,
-      user: 'old-user',
-      password: 'old-secret',
-      database: 'hotel_db',
-    })
+  it('no longer reads the AIVEN_* names', async () => {
+    await expect(
+      load({
+        DB_ENVIRONMENT: 'remote',
+        AIVEN_DB_HOST: 'old.example.test',
+        AIVEN_DB_PORT: '23225',
+        AIVEN_DB_USER: 'old-user',
+        AIVEN_PASSWORD: 'old-secret',
+      })
+    ).rejects.toThrow('REMOTE_DB_PASSWORD')
   })
 
-  it('prefers the new name when both are set', async () => {
-    const { dbConfig } = await load({
-      DB_ENVIRONMENT: 'aiven',
-      AIVEN_DB_HOST: 'old.example.test',
-      AIVEN_DB_PORT: '23225',
-      AIVEN_DB_USER: 'old-user',
-      AIVEN_PASSWORD: 'old-secret',
-      REMOTE_DB_HOST: 'db.example.test',
-      REMOTE_DB_PASSWORD: 'new-secret',
-    })
-    expect(dbConfig).toMatchObject({
-      host: 'db.example.test',
-      port: 23225,
-      user: 'old-user',
-      password: 'new-secret',
-    })
+  it('rejects the former aiven preset', async () => {
+    await expect(load({ DB_ENVIRONMENT: 'aiven' })).rejects.toThrow('Entorno no válido')
   })
 
-  it('names the new variable when the password is missing', async () => {
+  it('names the variable when the password is missing', async () => {
     await expect(load({ DB_ENVIRONMENT: 'remote' })).rejects.toThrow('REMOTE_DB_PASSWORD')
   })
 

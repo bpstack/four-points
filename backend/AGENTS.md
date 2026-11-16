@@ -244,9 +244,7 @@ index.ts → routes → controllers → services → repositories → models
   `validations/`, `models/<domain>/`.
 - **Database**: the pool is in `config/db.ts`; `config/db-config.ts` picks the
   connection by `DB_ENVIRONMENT` (`local` by default, or `remote`, read from
-  `REMOTE_DB_*`). Until every deployed service is switched, `aiven` and the
-  `AIVEN_*` names are still accepted as a fallback (ADR-048). Transactions
-  through `config/transaction.ts`.
+  `REMOTE_DB_*`). Transactions through `config/transaction.ts`.
 - **Errors**: Express 5 forwards async errors to the global handler in
   `index.ts`; module-specific codes in `config/error-codes.ts`.
 - **CORS** (`config/cors.ts`): a fixed list of origins — `localhost:3000`
