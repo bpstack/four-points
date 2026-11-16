@@ -1,6 +1,6 @@
 // tests/checklist/checklist.test.ts
 // Integration tests for checklist repository + service.
-// Requires a reachable MySQL (local or aiven). Skipped gracefully otherwise.
+// Requires a reachable MySQL (local or remote). Skipped gracefully otherwise.
 // Each test runs against a dedicated checklist_id that is cleaned up in beforeEach/afterAll.
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'

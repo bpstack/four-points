@@ -4,10 +4,11 @@
 # Aplicar una migración incremental (scripts/YYYYMMDD_*.sql)
 # =============================================
 # Uso (desde cualquier carpeta):
-#   backend/db-mysql/scripts/apply-migration.sh local|aiven <fichero.sql> [--dry-run]
+#   backend/db-mysql/scripts/apply-migration.sh local|remote <fichero.sql> [--dry-run]
 #
-# - Las credenciales salen de backend/.env (LOCAL_DB_* o AIVEN_DB_* y
-#   AIVEN_PASSWORD), nunca de este fichero.
+# - Las credenciales salen de backend/.env (LOCAL_DB_* o REMOTE_DB_*), nunca de
+#   este fichero. Si falta una REMOTE_DB_*, se lee su nombre anterior
+#   (AIVEN_DB_*, AIVEN_PASSWORD) mientras dure la transición.
 # - La contraseña va por MYSQL_PWD: no aparece en la línea de comandos.
 # - --dry-run: muestra destino y fichero y comprueba la conexión con un
 #   SELECT; no ejecuta la migración.
@@ -24,8 +25,8 @@ TARGET="${1:-}"
 SQL_FILE="${2:-}"
 DRY_RUN="${3:-}"
 
-if [[ "$TARGET" != "local" && "$TARGET" != "aiven" ]] || [[ -z "$SQL_FILE" ]]; then
-  echo "Uso: $0 local|aiven <scripts/YYYYMMDD_descripcion.sql> [--dry-run]"
+if [[ "$TARGET" != "local" && "$TARGET" != "remote" ]] || [[ -z "$SQL_FILE" ]]; then
+  echo "Uso: $0 local|remote <scripts/YYYYMMDD_descripcion.sql> [--dry-run]"
   exit 1
 fi
 
@@ -42,6 +43,14 @@ env_get() {
   grep -E "^$1=" "$ENV_FILE" | tail -1 | cut -d= -f2- | sed -E 's/^["'\'']//; s/["'\'']$//' | tr -d '\r'
 }
 
+# Variable de la BD remota; si falta, su nombre anterior (transición)
+env_get_remote() {
+  local value
+  value="$(env_get "$1")"
+  [[ -n "$value" ]] || value="$(env_get "$2")"
+  printf '%s' "$value"
+}
+
 if [[ "$TARGET" == "local" ]]; then
   DB_HOST="$(env_get LOCAL_DB_HOST)";  DB_HOST="${DB_HOST:-localhost}"
   DB_PORT="$(env_get LOCAL_DB_PORT)";  DB_PORT="${DB_PORT:-3306}"
@@ -50,11 +59,11 @@ if [[ "$TARGET" == "local" ]]; then
   export MYSQL_PWD="$(env_get LOCAL_DB_PASSWORD)"
   SSL_ARGS=()
 else
-  DB_HOST="$(env_get AIVEN_DB_HOST)"
-  DB_PORT="$(env_get AIVEN_DB_PORT)"
-  DB_USER="$(env_get AIVEN_DB_USER)"
-  DB_NAME="$(env_get AIVEN_DB_NAME)";  DB_NAME="${DB_NAME:-hotel_db}"
-  export MYSQL_PWD="$(env_get AIVEN_PASSWORD)"
+  DB_HOST="$(env_get_remote REMOTE_DB_HOST AIVEN_DB_HOST)"
+  DB_PORT="$(env_get_remote REMOTE_DB_PORT AIVEN_DB_PORT)"
+  DB_USER="$(env_get_remote REMOTE_DB_USER AIVEN_DB_USER)"
+  DB_NAME="$(env_get_remote REMOTE_DB_NAME AIVEN_DB_NAME)";  DB_NAME="${DB_NAME:-hotel_db}"
+  export MYSQL_PWD="$(env_get_remote REMOTE_DB_PASSWORD AIVEN_PASSWORD)"
   SSL_ARGS=(--ssl-ca="$SSL_CA" --ssl-mode=VERIFY_CA)
 fi
 [[ -n "$DB_HOST" && -n "$DB_PORT" && -n "$DB_USER" && -n "$MYSQL_PWD" ]] || { echo "❌ Faltan credenciales de $TARGET en backend/.env"; exit 1; }

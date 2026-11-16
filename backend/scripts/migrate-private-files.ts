@@ -4,8 +4,8 @@
 // purges the CDN copy, and stores the new signed secure_url in the rows that
 // point to them, so the API endpoints keep serving them. Avatars stay public.
 //
-//   DB_ENVIRONMENT=aiven pnpm exec tsx scripts/migrate-private-files.ts           (dry run)
-//   DB_ENVIRONMENT=aiven pnpm exec tsx scripts/migrate-private-files.ts --apply
+//   DB_ENVIRONMENT=remote pnpm exec tsx scripts/migrate-private-files.ts           (dry run)
+//   DB_ENVIRONMENT=remote pnpm exec tsx scripts/migrate-private-files.ts --apply
 //
 // Idempotent: a second run finds nothing left to migrate. Blacklist rows also
 // get their stored URLs rewritten to API paths (services/uploads/blacklist-images.ts).

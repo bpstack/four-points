@@ -25,8 +25,8 @@ logger.info(
 // ========================================
 const pool: Pool = mysql.createPool(config) // ← MODIFICADO (añadido tipo)
 
-// NOW(), CURDATE() and DEFAULT CURRENT_TIMESTAMP in UTC on every connection, as on
-// Aiven (ADR-047). The event hands over the callback connection, not the promise one
+// NOW(), CURDATE() and DEFAULT CURRENT_TIMESTAMP in UTC on every connection, whatever
+// the server default (ADR-047). The event hands over the callback connection, not the promise one
 pool.on('connection', (connection) => {
   const raw = connection as unknown as {
     query: (sql: string, callback: (err: Error | null) => void) => void
@@ -36,7 +36,7 @@ pool.on('connection', (connection) => {
   })
 })
 
-// Verify connection at startup with retries (Aiven can timeout on cold start)
+// Verify connection at startup with retries (the remote DB can time out on a cold start)
 async function connectWithRetry(retries = 3, delayMs = 3000): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {

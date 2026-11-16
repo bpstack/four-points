@@ -1,6 +1,6 @@
 // tests/auth/user-repository-login.test.ts
 // Integration tests for UserRepository.login.
-// Requires a reachable MySQL (local or aiven). Skipped gracefully otherwise.
+// Requires a reachable MySQL (local or remote). Skipped gracefully otherwise.
 // Inserts a throwaway user, exercises the 4 outcomes, removes it.
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'

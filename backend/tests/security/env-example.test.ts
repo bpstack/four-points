@@ -53,7 +53,12 @@ describe('backend/.env.example', () => {
   })
 
   it('carries no real hosts or passwords', () => {
-    for (const key of ['LOCAL_DB_PASSWORD', 'AIVEN_PASSWORD', 'AIVEN_DB_HOST', 'AIVEN_DB_USER']) {
+    for (const key of [
+      'LOCAL_DB_PASSWORD',
+      'REMOTE_DB_PASSWORD',
+      'REMOTE_DB_HOST',
+      'REMOTE_DB_USER',
+    ]) {
       expect(declared.get(key), key).toBe('')
     }
     expect(example).not.toMatch(/aivencloud\.com/)
