@@ -3,14 +3,17 @@
 **Up:** [`backend/AGENTS.md`](../AGENTS.md) — `backend/` rules ·
 [root `AGENTS.md`](../../AGENTS.md) — shared rules and module map.
 
-> Single doc for `backend/db-mysql/`. Covers the migration policy, the frozen
-> baseline, how to write a new incremental script, and how to reconstruct the
-> schema from scratch. **Read this before touching any table.**
+> Single doc for the rules of `backend/db-mysql/`: the migration policy, how a
+> fresh install is built, how the repo is kept equal to production, applying a
+> migration and backups. The table list and the migration log are in `INDEX.md`;
+> the public summary in `docs/general/database/README.md`. **Read this before
+> touching any table.**
 
 ## The rule in one sentence
 
 Every schema change goes in a new `scripts/YYYYMMDD_<description>.sql` file,
-idempotent, registered in `INDEX.md`. Nothing else.
+idempotent, registered in `INDEX.md`, and only after `compare-schema.sh` shows
+the repo and production match.
 
 ## Layout
 
@@ -18,48 +21,67 @@ idempotent, registered in `INDEX.md`. Nothing else.
 backend/db-mysql/
 ├── schema.sql         # Structure of the remote DB (2026-11-26), loaded by setup:local
 ├── catalogs.sql       # Catalog rows a fresh install needs, loaded after schema.sql
-├── aiven/             # FROZEN baseline snapshot (2026-05-20). Never edit. Not loaded any more (ADR-050)
-│   ├── 01_create_database.sql … 20_checklist.sql
-│   └── 99_verification.sql
-├── scripts/           # Incremental migrations — the single source of truth
-│   ├── 20251220_add_backoffice.sql
-│   ├── 20251222_add_user_avatar_columns.sql
-│   ├── … (chronological order)
+├── scripts/           # Incremental migrations, YYYYMMDD_*.sql, and the tools below
 │   ├── apply-migration.sh  # Applies one migration to local or remote
 │   ├── local-env.sh        # Local credentials from backend/.env, sourced by the others
 │   ├── backup-local.sh     # Dumps the local DB into backup/
 │   ├── check-collation.sh  # Shows the local DB collation
 │   ├── compare-schema.sh   # Lists the schema differences between two local DBs
-│   ├── snapshot-schema.sh  # Writes schema.sql and catalogs.sql
-│   └── recreate-local.sh   # ⚠️ Drops the local DB and runs MASTER_INSTALL.sql only
+│   └── snapshot-schema.sh  # Writes schema.sql and catalogs.sql
+├── aiven/             # Old baseline (2026-05-20). History: frozen, not loaded, never run
+├── MASTER_INSTALL.sql # Ran aiven/ in order. History: never run
 ├── backup/            # DB dumps (local + remote), git-ignored; backup.ps1
-├── MASTER_INSTALL.sql # Runs all aiven/ files in order. Empty DB only.
-├── MIGRATIONS_POLICY.md
-├── INDEX.md           # Full table index + incremental migration log
+├── INDEX.md           # Tables by module + incremental migration log
 ├── mock-data.sql      # Clears module data and loads fictitious data (keeps users and scheduling)
 └── scheduling-seed.sql # Demo scheduling base: employees, contracts, months
 ```
 
-`recreate-local.sh` predates `pnpm setup:local` and does less: no baseline
-fixes, no incremental scripts, no admin. Use `pnpm setup:local` instead.
+`aiven/` keeps the name of the host the database had until 2026-11-16. It is not
+renamed: `MASTER_INSTALL.sql` and the rollback notes of applied scripts point to
+it, and those files are never edited.
 
-## Migration policy (since 2026-05-20)
+## Migration policy
 
-**Incremental-only.** Rails/Django/Flyway style.
+**Incremental-only**, Rails/Django/Flyway style, on top of a snapshot.
 
-- **`aiven/NN_*.sql` are frozen**: Snapshot of install base at 2026-05-20. Each
-  file has a `⚠️ FROZEN` header. **Never edit.**
-- **New schema change**: New file in `scripts/YYYYMMDD_<description>.sql`.
-  Idempotent. Applied to live DB.
-- **Register in `INDEX.md`**: Add a row to the "Migraciones incrementales"
-  table: date, file, description, status per env (`✅ local · ✅ remota`,
-  `⏳ pendiente`). Rows up to 2026-10-14 say `Aiven`, the remote database until
+- **New schema change**: a new file in `scripts/YYYYMMDD_<description>.sql`,
+  idempotent (see "Writing an idempotent script"), applied to the live DBs.
+- **First line**: `SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;`. Without it, a
+  script run from a Windows console (`cp850`) creates views and triggers with
+  the wrong character set: production had two such objects until
+  `20261126_fix_charset_leftovers.sql`.
+- **Charset / collation**: always `utf8mb4` / `utf8mb4_0900_ai_ci`.
+- **Register in `INDEX.md`**: a row in the "Migraciones incrementales" table:
+  date, file, description, status per env (`✅ local · ✅ remota`,
+  `⏳ pendiente`). Rows up to 2026-10-14 say `Aiven`, the remote host until
   2026-11-16; the current one was loaded from its dump, so they hold for it.
-- **Never modify a committed script**: If something went wrong, create a new
-  `YYYYMMDD_fix_…sql` that corrects it.
-- **Apply order**: Local first, then remote, with `scripts/apply-migration.sh`
-  (see "Applying a migration"). Update `INDEX.md` status after each.
-- **Charset / collation**: Always `utf8mb4` / `utf8mb4_0900_ai_ci`.
+- **Never modify a committed script**: if something went wrong, create a new
+  `YYYYMMDD_fix_…sql` that corrects it (ADR-021).
+- **Apply order**: compare first (see "Production schema"), then local, then
+  remote, with `scripts/apply-migration.sh` (see "Applying a migration"). Update
+  `INDEX.md` after each.
+- **`aiven/NN_*.sql` are frozen** since 2026-05-20, each with a `⚠️ FROZEN`
+  header. Their headers cite `MIGRATIONS_POLICY.md`: that policy is now this
+  section.
+
+How it got here:
+
+1. **Until 2026-05-19, hybrid**: each change was written both in
+   `aiven/NN_*.sql` and in `scripts/`, and the two drifted apart whenever the
+   mirror was forgotten.
+2. **From 2026-05-20, incremental-only**: `aiven/` froze and every change went
+   to `scripts/`. Installing meant the old baseline plus every script, and the
+   result drifted from production in comments, column order and routine bodies.
+   Changes from before 2026-04-25 that went straight into `aiven/` were rebuilt
+   as `[RETROACTIVE]` scripts, for traceability.
+3. **From 2026-11-26, snapshot** (ADR-050): `schema.sql` is the production
+   structure, so a fresh install equals production by construction, and only the
+   scripts dated after it run on top.
+
+**When to change the model**: if more than one or two people change the schema
+at once, or CI starts validating it, move to a tool (dbmate, Flyway, Prisma
+Migrate). When scripts pile up, take a new snapshot instead (see "Fresh
+install").
 
 ## Writing an idempotent script
 
@@ -89,7 +111,7 @@ CREATE TABLE IF NOT EXISTS new_table (…);
 Reference implementation:
 `scripts/20260519_add_scheduling_employee_display_order.sql`.
 
-## Reconstruct from scratch
+## Fresh install
 
 ```bash
 cd backend
@@ -107,19 +129,46 @@ counters or `demo_snapshot_*` tables; `catalogs.sql` comes from a repo install,
 never from production. Both are written by `scripts/snapshot-schema.sh`. To take
 a new snapshot: dump the remote, load it without `DEFINER` into a separate DB,
 run the script, review the result (the repo is public) and move the cut-off date
-in `setup-local.ts`. `MASTER_INSTALL.sql` and `aiven/` are kept as history; do
-not run them.
+in `setup-local.ts`.
 
-Idempotency guarantees applying all scripts twice leaves the DB intact.
+**Never run `MASTER_INSTALL.sql` or `aiven/NN_*.sql`**, and never against a DB
+with data: they drop or duplicate rows and build the old schema.
 
-**Never run `MASTER_INSTALL.sql` or `aiven/NN_*.sql` against a DB that already
-has data.** They will overwrite or duplicate rows.
+## Production schema
+
+The repo and the remote database must describe the same schema. On 2026-11-26 a
+copy of the remote was compared with a repo install, object by object
+(`scripts/compare-schema.sh`):
+
+- **Matched**: the table, view, trigger, routine, event and column counts,
+  indexes, foreign keys, `CHECK`s, view and event bodies, 8 of 10 catalogs and
+  the server settings (version, `sql_mode`, time zone, `lower_case_table_names`,
+  `event_scheduler`, binary log, collations).
+- **Differed, and how it was solved:**
+  - `parking_rates` had other prices in production. The table went away: a
+    booking's price is typed by hand (`20261126_drop_parking_rates.sql`).
+  - `v_bo_monthly_summary` and `trg_cashier_shift_update_daily` had been created
+    from a `cp850` console in production; recreated with `utf8mb4`
+    (`20261126_fix_charset_leftovers.sql`).
+  - Form only — comments, column order in `users` and `scheduling_assignments`,
+    comments stripped from bodies, the `ANSI` `sql_mode` of triggers and
+    routines inherited from the previous host: the snapshot took production's
+    version (ADR-050). None changes what the application does.
+- **Result**: after a `setup:local` from the snapshot, zero differences.
+- **Exception**: the `demo_snapshot_scheduling_*` tables, which the demo creates
+  at runtime. `compare-schema.sh` leaves them out by default.
+
+**Before writing a migration**, compare again; if anything differs, fix that
+first:
+
+1. Dump the remote with `backup/backup.ps1 -Target remote`.
+2. Load the dump without its `DEFINER` clauses into a separate local DB.
+3. `scripts/compare-schema.sh <that_db> hotel_db` against a fresh
+   `pnpm setup:local -- --force`. Exit code 0 means no differences.
+4. Drop the separate DB: it holds production data. Keep the output out of the
+   repo.
 
 ## Applying a migration
-
-**Before every migration**, a repo install and a copy of the remote must match:
-`scripts/compare-schema.sh <copy_of_remote> hotel_db` with no differences. If
-they differ, fix that first: it is what keeps the repo equal to production.
 
 `scripts/apply-migration.sh` runs one `scripts/YYYYMMDD_*.sql` against local or
 remote. It reads the credentials from `backend/.env` (`LOCAL_DB_*` or
@@ -135,6 +184,7 @@ cd backend/db-mysql/scripts
 ./apply-migration.sh remote 20261004_add_messages_to_notifications_module.sql
 ```
 
+- Compare first ("Production schema") and dump the remote before applying there.
 - `--dry-run` only checks the connection and prints the target; nothing runs.
 - Each script prints its own result (a skip message or the new definition), so
   the output shows whether it changed anything.
@@ -154,12 +204,12 @@ self-managed MySQL 8.4 (ADR-048), shared by production and preview.
 ## DB at a glance
 
 - **Name:** `hotel_db`
-- **Engine:** MySQL 8.0+ (`utf8mb4_0900_ai_ci`)
-- **67 tables + 3 views** declared between the baseline and `scripts/`, across
-  core, logbook, parking, conciliation, groups, cashier, blacklist, maintenance,
-  messages, notifications, backoffice, scheduling, checklist, F&B and demo. The
-  demo also creates `demo_snapshot_scheduling_*` tables at runtime.
-- Full table list in `INDEX.md`.
+- **Engine:** MySQL 8.4, `utf8mb4_0900_ai_ci`. Local in Docker
+  (`docker-compose.yml` at the repo root), with the same version and settings as
+  the remote (ADR-049).
+- **In `schema.sql`:** 67 tables, 3 views, 6 triggers, 6 routines and 1 event.
+  The demo also creates `demo_snapshot_scheduling_*` tables at runtime. Tables
+  by module in `INDEX.md`.
 
 ### Roles
 
@@ -181,31 +231,29 @@ password.
 
 ## Known gotchas
 
-1. **`MASTER_INSTALL.sql` is out of date.** It reflects the schema as of
-   2026-05-20, not today. The current schema is `schema.sql` + the `scripts/`
-   dated after it.
+1. **`aiven/` and `MASTER_INSTALL.sql` are not the schema.** They stop at
+   2026-05-20 and list things the live databases never got:
+   `aiven/17_notifications.sql` had `'messages'` in `notifications.module`, the
+   live DB did not, and the urgent message notices failed silently until
+   `20261004_add_messages_to_notifications_module.sql`. The schema is
+   `schema.sql` + the `scripts/` dated after it; when in doubt, check
+   `information_schema` on the target DB.
 2. **Retroactive scripts.** Scripts tagged `[RETROACTIVE]` in `INDEX.md`
-   document schema changes that were made by directly editing `aiven/NN_*.sql`
-   before the incremental-only policy existed (pre-2026-04-25). They are
-   idempotent no-ops against the current live DB — they exist purely for
-   traceability.
+   document changes made by editing `aiven/NN_*.sql` before the incremental-only
+   policy (pre-2026-04-25). They are idempotent no-ops against the live DBs and
+   exist for traceability.
 3. **`INDEX.md` is the source of truth for what's applied.** If a script is
    missing from the table, it's not tracked. Keep it up to date.
 4. **No one-off data scripts.** One-time data fixers (the old
    `add-libre-number.ts` and `backfill-libre-numbers.ts`) and quick query
-   scripts were removed on 2026-10-04: they carried the Aiven password and had
+   scripts were removed on 2026-10-04: they carried the remote password and had
    already run. Write a new one only if it reads `backend/.env`, and drop it
    once applied.
-5. **The frozen baseline is not the live schema.** `aiven/NN_*.sql` may list
-   things the live databases never got: `aiven/17_notifications.sql` had
-   `'messages'` in `notifications.module`, Aiven did not, and the urgent message
-   notices failed silently until
-   `20261004_add_messages_to_notifications_module.sql`. Before relying on a
-   column, check `information_schema` on the target DB.
 
 ## Cross references
 
-- `MIGRATIONS_POLICY.md` — full policy rationale and when to change the model.
-- `INDEX.md` — module-by-module table list + full incremental migration log.
-- Fresh install: `pnpm setup:local` (`scripts/setup-local.ts`), never
-  `MASTER_INSTALL.sql` by hand.
+- `INDEX.md` — tables by module + incremental migration log.
+- [`docs/general/database/README.md`](../../docs/general/database/README.md) —
+  public summary of the database.
+- `docs/DECISIONS.md` — ADR-021 (applied scripts are never edited), ADR-048 (the
+  remote database), ADR-049 (local in Docker) and ADR-050 (snapshot install).

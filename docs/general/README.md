@@ -60,7 +60,8 @@ if it does not match.
 ## What data it handles
 
 - **MySQL 8.4**, self-managed on a VPS, a single database (`hotel_db`) with test
-  data, used by both the deployment and development. Summary in
+  data, shared by production and preview; development runs its own in Docker,
+  with the same version (`pnpm setup:local`). Summary in
   [`database/`](database/README.md); schema, scripts and migration policy in
   [`backend/db-mysql/`](../../backend/db-mysql/).
 - **Users and roles**: tables `users` and `roles`. Passwords are stored with

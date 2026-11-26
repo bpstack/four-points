@@ -1,89 +1,57 @@
-# Índice General - Sistema Hotel DB
+# Índice de `hotel_db`: tablas y migraciones
 
-## Estructura de Carpetas
+Qué tablas hay y qué migraciones se aplicaron, y dónde. Las reglas (política de
+migraciones, instalación, comparar con producción, copias) están en
+[`AGENTS.md`](./AGENTS.md).
 
-```
-db-mysql/
-├── aiven/                    # Scripts para desarrollo (utf8mb4_0900_ai_ci)
-│   ├── 01_create_database.sql
-│   ├── 02_core_tables.sql
-│   ├── 03_logbook_tables.sql
-│   ├── 04_parking_tables.sql
-│   ├── 05_parking_functions_triggers.sql
-│   ├── 06_parking_procedures.sql
-│   ├── 07_parking_initial_data.sql
-│   ├── 08_parking_sample_data.sql
-│   ├── 09_conciliation.sql
-│   ├── 10_group-tracking.sql
-│   ├── 11_cashier.sql
-│   ├── 12_blacklist.sql
-│   ├── 13_maintenance.sql
-│   ├── 14_messages.sql
-│   ├── 15_demo_user.sql
-│   ├── 16_backoffice.sql
-│   ├── 17_notifications.sql
-│   ├── 18_user_avatar.sql
-│   ├── 19_scheduling.sql
-│   ├── 99_verification.sql
-│   └── aiven-conexion.md
-│
-├── backup/
-│   ├── backup_hotel_db-local.sql
-│   └── backup_hotel_db-aiven.sql
-│
-├── schema.sql                # Estructura de la remota (2026-11-26): la carga setup:local
-├── catalogs.sql              # Filas de los catálogos de una instalación nueva
-├── MASTER_INSTALL.sql        # Base vieja (apunta a aiven/), ya no se carga
-├── INDEX.md
-├── README.md
-├── cleanup-scheduling.sql
-└── mock-data.sql        # Vacía los módulos y carga datos ficticios (no toca usuarios ni horarios)
-```
+## Tablas por módulo
 
----
+Según `schema.sql` (2026-11-26): 67 tablas y 3 vistas.
 
-## Módulos del Sistema
+- **Core** (3): `roles`, `departments`, `users`.
+- **Logbook** (4): `logbooks`, `logbook_comments`, `logbook_reads`,
+  `logbook_history`.
+- **Parking** (4): `parking_spots`, `parking_vehicles`, `parking_bookings`,
+  `parking_availability`. Con 5 triggers sobre `parking_bookings`, 2 funciones
+  (`check_availability`, `get_total_availability`) y 4 procedimientos
+  (`generate_availability`, `sync_parking_availability`,
+  `daily_parking_maintenance`, `get_pending_checkins`).
+- **Conciliación** (4): `conciliation_reception`, `conciliation_housekeeping`,
+  `conciliation_summary`, `conciliation_monthly_summary`.
+- **Grupos** (6): `hotel_groups`, `group_contacts`, `group_rooms`,
+  `group_payments`, `group_status`, `group_history`.
+- **Caja** (9): `payment_methods`, `cashier_daily`, `cashier_shifts`,
+  `cashier_shift_users`, `cashier_denominations`, `cashier_payments`,
+  `cashier_vouchers`, `cashier_shift_vouchers`, `cashier_history`. Con el
+  trigger `trg_cashier_shift_update_daily`.
+- **Lista negra** (1): `blacklist_entries`.
+- **Mantenimiento** (3): `maintenance_reports`, `maintenance_images`,
+  `maintenance_history`.
+- **Mensajería** (3): `conversations`, `conversation_participants`, `messages`.
+  Con el evento diario `cleanup_old_messages`.
+- **Notificaciones** (2): `notifications`, `notification_recipients`.
+- **Backoffice** (5 + 3 vistas): `bo_categories`, `bo_suppliers`, `bo_invoices`,
+  `bo_invoice_history`, `bo_assets`; vistas `v_bo_invoices_detail`,
+  `v_bo_monthly_summary`, `v_bo_suppliers_stats`.
+- **Horarios** (12): `scheduling_months`, `scheduling_days`,
+  `scheduling_shifts`, `scheduling_assignments`, `scheduling_config`,
+  `scheduling_constraints`, `scheduling_employees`,
+  `scheduling_employee_contracts`, `scheduling_employee_rules`,
+  `scheduling_employee_requests`, `scheduling_solver_runs`,
+  `scheduling_history`.
+- **Checklist** (6): `checklist_config`, `checklist_runs`,
+  `checklist_step_state`, `checklist_step_comments`,
+  `checklist_step_attachments`, `checklist_event_log`.
+- **F&B** (2): `fnb_category`, `fnb_daily_revenue`.
+- **Sistema y demo** (3): `cron_job_runs`, `demo_activity_log`,
+  `demo_reset_log`. La demo crea además las `demo_snapshot_scheduling_*` en
+  ejecución; no están en `schema.sql`.
 
-> ⚠️ **Los archivos `aiven/NN_*.sql` están congelados desde 2026-05-20** como
-> snapshot del install base. Cualquier cambio posterior vive en `scripts/`. Ver
-> `MIGRATIONS_POLICY.md`.
+## Migraciones incrementales (`scripts/`)
 
-### Core (01-03)
-
-| #   | Archivo                  | Descripción         | Tablas                                                             |
-| --- | ------------------------ | ------------------- | ------------------------------------------------------------------ |
-| 01  | `01_create_database.sql` | Crea DB con UTF-8   | -                                                                  |
-| 02  | `02_core_tables.sql`     | Sistema de usuarios | `roles`, `departments`, `users`                                    |
-| 03  | `03_logbook_tables.sql`  | Bitácora            | `logbooks`, `logbook_comments`, `logbook_reads`, `logbook_history` |
-
-### Parking (04-08)
-
-| #   | Archivo                             | Descripción          | Componentes                                                                                      |
-| --- | ----------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------ |
-| 04  | `04_parking_tables.sql`             | Tablas parking       | `parking_spots`, `parking_vehicles`, `parking_rates`, `parking_bookings`, `parking_availability` |
-| 05  | `05_parking_functions_triggers.sql` | Funciones y triggers | `check_availability()`, `get_total_availability()`, triggers automáticos                         |
-| 06  | `06_parking_procedures.sql`         | Procedimientos       | `generate_availability()`, `get_available_spots()`, etc.                                         |
-| 07  | `07_parking_initial_data.sql`       | Datos iniciales      | 20 plazas, 30 tarifas                                                                            |
-| 08  | `08_parking_sample_data.sql`        | Datos de ejemplo     | Opcional                                                                                         |
-
-### Módulos Adicionales (09-19)
-
-| #   | Archivo                 | Descripción            | Tablas                                                                                                                          |
-| --- | ----------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 09  | `09_conciliation.sql`   | Conciliación bancaria  | `conciliation_*` (4 tablas)                                                                                                     |
-| 10  | `10_group-tracking.sql` | Seguimiento de grupos  | `hotel_groups`, `group_*` (6 tablas)                                                                                            |
-| 11  | `11_cashier.sql`        | Sistema de caja        | `payment_methods`, `cashier_*` (9 tablas)                                                                                       |
-| 12  | `12_blacklist.sql`      | Lista negra            | `blacklist_entries`                                                                                                             |
-| 13  | `13_maintenance.sql`    | Mantenimiento          | `maintenance_*` (3 tablas)                                                                                                      |
-| 14  | `14_messages.sql`       | Mensajería             | `conversations`, `conversation_participants`, `messages`                                                                        |
-| 15  | `15_demo_user.sql`      | Usuario demo           | Rol `demo-admin` (id=7) + usuario `demo`                                                                                        |
-| 16  | `16_backoffice.sql`     | Backoffice             | `bo_categories`, `bo_suppliers`, `bo_invoices`, `bo_invoice_history`, `bo_assets` + 3 vistas                                    |
-| 17  | `17_notifications.sql`  | Notificaciones         | `notifications`, `notification_recipients`                                                                                      |
-| 18  | `18_user_avatar.sql`    | Avatares de usuario    | Columnas `avatar_url`, `avatar_public_id` en `users` (Cloudinary)                                                               |
-| 19  | `19_scheduling.sql`     | Programación de turnos | `scheduling_months`, `scheduling_assignments`, `scheduling_config`, `scheduling_employee_rules`, `scheduling_constraints`, etc. |
-
-### Migraciones incrementales (`scripts/`)
-
+> **Hasta el 2026-11-26** las filas ya están dentro de `schema.sql`: una
+> instalación nueva solo aplica las posteriores (ADR-050).
+>
 > Scripts con etiqueta **[RETROACTIVE]** documentan cambios de schema que
 > entraron históricamente editando directo `aiven/NN_*.sql` antes de que
 > existiera la política de incrementales. Reconstruidos a posteriori desde git
@@ -127,78 +95,3 @@ db-mysql/
 | 2026-10-14 | `20261014_booking_code_hotel_date.sql`                 | `trg_generate_booking_code` toma la fecha de `PK-AAAAMMDD-NNNN` en hora de Madrid (`CONVERT_TZ` de `UTC_TIMESTAMP()`): con `NOW()` en UTC, una reserva entre las 00:00 y las 02:00 llevaba la fecha de ayer (ADR-047). Sin zonas con nombre (MySQL local) usa la fecha UTC, como antes. Idempotente.                                                                                                                                    | ✅ local · ✅ Aiven               |
 | 2026-11-26 | `20261126_fix_charset_leftovers.sql`                   | Recrea `v_bo_monthly_summary` y `trg_cashier_shift_update_daily` con `SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci` (mismos cuerpos) y corrige 4 comentarios de `scheduling_employee_requests` con caracteres rotos. En la remota se habían creado desde una consola `cp850`: la columna `period` de la vista era `cp850`. Hallado con `compare-schema.sh`. Idempotente.                                                                | ✅ local · ✅ remota              |
 | 2026-11-26 | `20261126_drop_parking_rates.sql`                      | Borra `parking_rates` y `get_available_spots`, la única rutina que la leía (nadie la llama): el precio de cada reserva se escribe a mano. Las reservas conservan su importe. **En la remota, aplicar después de desplegar el código** en preview y producción: el código anterior consulta la tabla al crear una reserva sin precio. Idempotente.                                                                                       | ✅ local · ✅ remota              |
-
-### Verificación (99)
-
-| #   | Archivo               | Descripción                   |
-| --- | --------------------- | ----------------------------- |
-| 99  | `99_verification.sql` | Verifica instalación completa |
-
----
-
-## Instalación
-
-### Desarrollo Local (MySQL 8.0+)
-
-```bash
-mysql -u root -p < MASTER_INSTALL.sql
-```
-
-### BD remota (producción)
-
-Solo sobre un servidor vacío; contra la BD con datos, nunca. Host, puerto y
-usuario son las variables `REMOTE_DB_*` de `backend/.env`.
-
-```bash
-mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem < MASTER_INSTALL.sql
-```
-
----
-
-## Notas
-
-- **Collation**: `utf8mb4_0900_ai_ci` (MySQL 8.0+)
-- TLS obligatorio en la BD remota (`ca-certificate.pem`)
-- **Política de migraciones**: ver
-  [`MIGRATIONS_POLICY.md`](./MIGRATIONS_POLICY.md). Resumen: cambios de schema →
-  script incremental idempotente en `scripts/` + registro en la tabla
-  "Migraciones incrementales" de este archivo. **NO** editar archivos
-  `aiven/NN_*.sql` (congelados desde 2026-05-20). **NO** ejecutar
-  `MASTER_INSTALL.sql` ni los scripts numerados contra una BD con datos.
-
----
-
-## Roles del Sistema
-
-| ID  | Nombre        | Descripción                       |
-| --- | ------------- | --------------------------------- |
-| 1   | recepcionista | Usuario estándar (default)        |
-| 2   | admin         | Administrador completo            |
-| 3   | mantenimiento | Personal de mantenimiento         |
-| 6   | group-admin   | Administrador de grupos           |
-| 7   | demo-admin    | Usuario demo (permisos limitados) |
-
----
-
-## Resumen de Tablas
-
-### Total: ~50 tablas + 3 vistas
-
-- **Core**: 3 tablas (roles, departments, users)
-- **Logbook**: 4 tablas
-- **Parking**: 5 tablas + funciones + triggers + procedimientos
-- **Conciliation**: 4 tablas
-- **Groups**: 6 tablas
-- **Cashier**: 9 tablas
-- **Blacklist**: 1 tabla
-- **Maintenance**: 3 tablas
-- **Messages**: 3 tablas
-- **Notifications**: 2 tablas
-- **Backoffice**: 5 tablas + 3 vistas
-- **User Avatar**: 1 tabla
-- **Scheduling**: 7+ tablas
-
----
-
-**Versión**: 3.0  
-**Fecha**: Febrero 2026
