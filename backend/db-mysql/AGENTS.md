@@ -148,9 +148,8 @@ mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem hot
 ```
 
 Host, port, user and password are the `REMOTE_DB_*` variables of `backend/.env`.
-TLS required. It is a self-managed MySQL 8.4 (ADR-048), shared by production and
-preview; `ca-certificate.pem` also keeps the CA of Aiven, the previous host,
-until that service is retired.
+TLS required, verified against the server's CA in `ca-certificate.pem`. It is a
+self-managed MySQL 8.4 (ADR-048), shared by production and preview.
 
 ## DB at a glance
 

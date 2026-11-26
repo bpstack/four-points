@@ -73,11 +73,9 @@ Tables by module:
 - **Time**: every backend session runs in **UTC**. What the database calculates
   with `NOW()` or `CURDATE()` runs 1–2 hours behind Madrid; the backend
   calculates "today" in Madrid time on its own.
-- **Encrypted connection**: TLS, checked against the CA certificates in
-  `backend/config/certs/ca-certificate.pem`: the one of the current server and,
-  until that service is retired, the one of Aiven. They are public certificates
-  (no private key) and stay in the repository because the backend and
-  `apply-migration.sh` need them.
+- **Encrypted connection**: TLS, checked against the server's CA certificate in
+  `backend/config/certs/ca-certificate.pem`. It is public (no private key) and
+  stays in the repository because the backend and `apply-migration.sh` need it.
 - **Operations**: the server is managed by the owner. There are no scheduled
   backups (the data is test data and the demo regenerates its own); a dump is
   made by hand with `backend/db-mysql/backup/backup.ps1` before a schema change.
