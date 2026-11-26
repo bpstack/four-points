@@ -162,8 +162,6 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       llama a `generate_availability` (desde `mock-data.sql`). Las otras 5 son
       código muerto en la base; quitarlas pide un script nuevo e idempotente.
       _Comprobado el 2026-11-26._
-- [ ] **`tests/auth/demo-login.test.ts` depende del entorno** — falla en local
-      si el `.env` tiene `DEMO_MODE`; en la CI, sin `.env`, pasa.
 - [ ] **`mock-data.sql`: la reserva 3 tiene la entrada hoy a las 13:00** — antes
       de esa hora no se le puede hacer la salida (la validación acierta).
 - [ ] **Aviso `DEP0123` al arrancar el backend** — Node no admite una IP como
