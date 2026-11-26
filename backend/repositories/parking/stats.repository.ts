@@ -448,6 +448,8 @@ class ParkingStatsRepository {
         is_overdue: row.is_overdue === 1,
       },
       payment: {
+        // NULL = no price yet (typed later); 0 is a real price
+        has_price: row.total_amount !== null,
         total_amount: parseFloat(String(row.total_amount || 0)),
         paid_amount: parseFloat(String(row.payment_amount || 0)),
         pending_amount:

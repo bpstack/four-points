@@ -159,7 +159,7 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
                   { value: 'cash', label: t('paymentMethods.cash') },
                   { value: 'card', label: t('paymentMethods.card') },
                   { value: 'transfer', label: t('paymentMethods.transfer') },
-                  { value: 'other', label: t('paymentMethods.other') },
+                  { value: 'agency', label: t('paymentMethods.agency') },
                 ]}
                 label={t('paymentModal.paymentMethod')}
                 size="md"

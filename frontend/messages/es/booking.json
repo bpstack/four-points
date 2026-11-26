@@ -63,12 +63,8 @@
   },
   "details": {
     "title": "Detalles de la reserva",
-    "priceManual": "Precio Manual (opcional)",
-    "priceTotal": "Precio total (€)",
-    "totalAmount": "Importe Total (€)",
-    "totalAmountHint": "Opcional, se calcula automáticamente",
-    "pricePlaceholder": "Dejar vacío = auto",
-    "priceAutoPlaceholder": "Dejar vacío para cálculo automático",
+    "price": "Precio (€, opcional)",
+    "pricePlaceholder": "Se puede poner después",
     "source": "Fuente",
     "bookingSource": "Origen de Reserva",
     "externalCode": "Código Externo (opcional)",
@@ -102,7 +98,7 @@
     "exit": "Salida:",
     "price": "Precio:",
     "priceTotal": "Precio Total:",
-    "priceAuto": "Precio se calculará automáticamente"
+    "noPrice": "Sin precio: se puede poner después editando la reserva"
   },
   "actions": {
     "cancel": "Cancelar",

@@ -234,10 +234,11 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
         {/* Campos adicionales - RESPONSIVE */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <div>
-            <label className={styles.label}>{t('details.priceManual')}</label>
+            <label className={styles.label}>{t('details.price')}</label>
             <input
               type="number"
               step="0.01"
+              min="0"
               value={state.reservationData.total_amount}
               onChange={(e) => actions.setReservationData({ total_amount: e.target.value })}
               placeholder={t('details.pricePlaceholder')}

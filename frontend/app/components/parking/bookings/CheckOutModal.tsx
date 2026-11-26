@@ -25,7 +25,12 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState({
     actual_checkout: formatDateTimeLocal(new Date()),
-    payment_amount: booking.payment.pending_amount.toString(),
+    // What is charged now; it adds to what was already paid. Nothing pending
+    // (or no price yet) proposes nothing
+    payment_amount:
+      booking.payment.has_price && booking.payment.pending_amount > 0
+        ? booking.payment.pending_amount.toString()
+        : '',
     payment_method: 'cash',
     payment_reference: '',
     notes: '',
@@ -80,7 +85,7 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
               <div className="flex justify-between">
                 <span className="text-info">{t('checkOutModal.totalBooking')}</span>
                 <span className="font-semibold text-blue-900 dark:text-blue-100">
-                  {booking.payment.total_amount.toFixed(2)}
+                  {booking.payment.has_price ? booking.payment.total_amount.toFixed(2) : '—'}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -92,10 +97,13 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
               <div className="flex justify-between pt-2 border-t border-blue-200 dark:border-blue-700">
                 <span className="font-medium text-info">{t('checkOutModal.pending')}</span>
                 <span className="font-bold text-blue-900 dark:text-blue-100">
-                  {booking.payment.pending_amount.toFixed(2)}
+                  {booking.payment.has_price ? booking.payment.pending_amount.toFixed(2) : '—'}
                 </span>
               </div>
             </div>
+            {!booking.payment.has_price && (
+              <p className="mt-3 text-xs text-info">{t('checkOutModal.noPriceHint')}</p>
+            )}
           </div>
 
           <div>
@@ -134,7 +142,7 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
               { value: 'cash', label: t('paymentMethods.cash') },
               { value: 'card', label: t('paymentMethods.card') },
               { value: 'transfer', label: t('paymentMethods.transfer') },
-              { value: 'other', label: t('paymentMethods.other') },
+              { value: 'agency', label: t('paymentMethods.agency') },
             ]}
             label={t('checkOutModal.paymentMethod')}
             size="md"

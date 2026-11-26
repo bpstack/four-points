@@ -310,6 +310,7 @@ export interface FormattedSchedule {
 }
 
 export interface FormattedPayment {
+  has_price: boolean
   total_amount: number
   paid_amount: number
   pending_amount: number
@@ -447,6 +448,7 @@ export interface FormattedPendingCheckout {
     is_overdue: boolean
   }
   payment: {
+    has_price: boolean
     total_amount: number
     paid_amount: number
     pending_amount: number

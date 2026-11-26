@@ -47,6 +47,8 @@ export interface ParkingBooking {
   }
   status: 'reserved' | 'checked_in' | 'completed' | 'canceled' | 'no_show'
   payment: {
+    /** false when the booking has no price yet (it is typed later) */
+    has_price: boolean
     total_amount: number
     paid_amount: number
     pending_amount: number
@@ -148,6 +150,7 @@ export interface PendingCheckout {
     is_overdue: boolean
   }
   payment: {
+    has_price: boolean
     total_amount: number
     paid_amount: number
     pending_amount: number

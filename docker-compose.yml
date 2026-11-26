@@ -1,4 +1,6 @@
 # Local MySQL only (ADR-038). The backend and the frontend still run with pnpm.
+# Same version and settings as the remote database (MySQL 8.4, no binary log),
+# so what works here works there.
 #
 #   docker compose --env-file backend/.env up -d     # start (port LOCAL_DB_PORT, default 3306)
 #   docker compose --env-file backend/.env down      # stop; add -v to delete the data
@@ -7,11 +9,11 @@
 # If you already run MySQL on 3306, set LOCAL_DB_PORT=3307 in backend/.env.
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4
     container_name: four-points-mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${LOCAL_DB_PASSWORD:?Set LOCAL_DB_PASSWORD in backend/.env}
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci --disable-log-bin
     ports:
       # Only this machine can reach it
       - '127.0.0.1:${LOCAL_DB_PORT:-3306}:3306'

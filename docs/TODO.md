@@ -134,8 +134,6 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       decidió el 2026-10-11 dejarlo así; si se le da pantalla, cerrar el mes
       debe bloquear sus días y comprobar con el mes bloqueado. _Comprobado el
       2026-10-11._
-- [ ] **Parking: salto de precio a partir de 31 días** — las tarifas llegan a 30
-      días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
 - [ ] **Zod 3 en el frontend y Zod 4 en el backend** (`^3.25.17` frente a
       `4.0.5`) — unificar si se llegan a compartir esquemas.
 - [ ] **Ejecutor de tests en el frontend** — no tiene: sus tests viven en

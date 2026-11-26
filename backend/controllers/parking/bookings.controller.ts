@@ -8,6 +8,7 @@ import {
   bookingsPageSchema,
   createBookingSchema,
   updateBookingBodySchema,
+  checkoutPaymentSchema,
 } from '../../validations/parking/booking-validation.js'
 import { getHotelNowDate, parseHotelTime } from '../../config/date-utils.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
@@ -213,7 +214,11 @@ class ParkingBookingsController {
         vehicle_id: vehicle_id ? parseInt(vehicle_id) : undefined,
         expected_checkin,
         expected_checkout,
-        total_amount: total_amount ? parseFloat(total_amount) : undefined,
+        // 0 is a price; only a missing or empty value means "no price"
+        total_amount:
+          total_amount === undefined || total_amount === null || total_amount === ''
+            ? undefined
+            : Number(total_amount),
         booking_source,
         external_booking_id,
         notes,
@@ -383,7 +388,21 @@ class ParkingBookingsController {
   checkOut = async (req: Request, res: Response): Promise<void> => {
     try {
       const { code } = req.params
-      const { actual_checkout, payment_amount, payment_method, payment_reference, notes } = req.body
+      const { actual_checkout, notes } = req.body
+
+      const parsedPayment = checkoutPaymentSchema.safeParse(req.body)
+      if (!parsedPayment.success) {
+        res.status(400).json({
+          success: false,
+          message: parsedPayment.error.issues[0].message,
+          errors: parsedPayment.error.issues.map((err) => ({
+            field: err.path.join('.'),
+            message: err.message,
+          })),
+        })
+        return
+      }
+      const { payment_amount, payment_method, payment_reference } = parsedPayment.data
 
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
@@ -409,9 +428,10 @@ class ParkingBookingsController {
 
       const booking = await ParkingBookingsRepository.checkOut(id, {
         actual_checkout: checkoutDate,
-        payment_amount: payment_amount ? parseFloat(payment_amount) : null,
-        payment_method,
-        payment_reference,
+        // What is charged now; the repository adds it to what was paid before
+        payment_amount: payment_amount ?? null,
+        payment_method: payment_method ?? null,
+        payment_reference: payment_reference ?? null,
       })
 
       if (notes && booking) {

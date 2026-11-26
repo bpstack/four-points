@@ -317,21 +317,18 @@ export const useBookingWizard = ({
     }))
   }, [])
 
+  // Calendar days between the two dates, the hours do not count: the same rule
+  // as planned_days in the backend (DATEDIFF), so the wizard and the booking
+  // detail always show the same number
   const calculateDays = useCallback(() => {
-    if (
-      !state.reservationData.expected_checkin_date ||
-      !state.reservationData.expected_checkout_date
-    )
-      return 0
-    const checkin = new Date(
-      `${state.reservationData.expected_checkin_date}T${state.reservationData.expected_checkin_time}`
-    )
-    const checkout = new Date(
-      `${state.reservationData.expected_checkout_date}T${state.reservationData.expected_checkout_time}`
-    )
-    const diffTime = Math.abs(checkout.getTime() - checkin.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
+    const { expected_checkin_date: checkin, expected_checkout_date: checkout } =
+      state.reservationData
+    if (!checkin || !checkout) return 0
+    const dayNumber = (date: string) => {
+      const [year, month, day] = date.split('-').map(Number)
+      return Date.UTC(year, month - 1, day) / 86_400_000
+    }
+    return Math.max(0, dayNumber(checkout) - dayNumber(checkin))
   }, [state.reservationData])
 
   const handleCreateReservation = useCallback(async () => {

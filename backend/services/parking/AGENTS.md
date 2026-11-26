@@ -47,8 +47,6 @@ backend/routes/parking/
   across bookings
 - **`parking_bookings`**: bookings: spot, vehicle, expected dates, actual dates,
   status, source, payment, total
-- **`parking_rates`**: rates by number of days (1–30). Not by spot type. Over 30
-  days there is no rate and 15 €/day is used
 - **`parking_availability`**: precomputed calendar: one row per spot and day,
   kept by the triggers in
   `backend/db-mysql/aiven/05_parking_functions_triggers.sql`; a job in
@@ -97,8 +95,8 @@ shows them as typed. `payment_date` and the audit columns are UTC instants
 
 ### Spot types
 
-`normal`, `ancha`, `mas_ancha`, `esquina`, `accesible`, `estrecha_bicis`. **Do
-not drive the rate calculation** — rates are by number of days only.
+`normal`, `ancha`, `mas_ancha`, `esquina`, `accesible`, `estrecha_bicis`. They
+do not affect the price, which is typed by hand.
 
 ### Levels
 
@@ -118,7 +116,7 @@ CHECK-IN
 { status: 'checked_in', actual_checkin = NOW() }
    ↓
 CHECK-OUT
-   ↓ (PUT /bookings/:code/checkout, stores payment fields; does not recompute total_amount)
+   ↓ (PUT /bookings/:code/checkout, adds what is charged to what was paid)
 { status: 'completed', actual_checkout = NOW(), payment_method, ... }
 
 ALTERNATIVES:
@@ -126,12 +124,23 @@ ALTERNATIVES:
    reserved → no_show   (PUT /bookings/:code/no-show, manual only — no cron)
 ```
 
-**`total_amount` calculation:** done on create using the rate from
-`parking_rates` for the number of days. The day count is the calendar-day
-difference with a minimum of 1: arriving on the 25th at 23:00 and leaving on the
-26th at 10:00 counts as **1 calendar day**, not 2. See `_calculateBookingDays()`
-in `bookings.repository.ts`. Checkout does not recompute `total_amount`; it
-stores the payment fields.
+**`total_amount`:** typed by hand, never calculated (decided on 2026-11-26; the
+`parking_rates` table and its lookup were dropped). It is optional when creating
+and editable afterwards: without one it is stored as `NULL`, the API answers 0
+and the payment modal refuses to charge until a price is set. `0` is a valid
+price (the controller only treats a missing or empty value as "no price").
+Checkout adds what is charged at check-out to what was already paid; charging
+nothing (empty or 0) leaves the previous payment, method and date as they were,
+and a booking without a price takes what is charged as its price (decided on
+2026-11-26: before, the check-out replaced the payment and a booking paid during
+the stay lost it; `tests/parking/checkout-payment.test.ts`). "Register payment"
+(`PUT /:code` with `payment_amount`) still sets the total paid, not an
+increment. Payment methods are the ENUM ones: `cash`, `card`, `transfer`,
+`agency`.
+
+**Days:** `planned_days` and `actual_days` are calendar days (`DATEDIFF`):
+arriving on the 25th at 23:00 and leaving on the 26th at 10:00 is 1 day. The
+booking wizard counts the same way.
 
 **Availability:** before creating or moving a booking, the system verifies the
 spot isn't occupied in the `[expected_checkin, expected_checkout)` range.
@@ -173,8 +182,8 @@ those comments — they're well-maintained.
 - `PUT /:code` — Edit booking
 - `DELETE /:code` — Delete booking (only for `reserved`, hard delete)
 - `PUT /:code/checkin` — Mark actual entry
-- `PUT /:code/checkout` — Mark exit + payment (stores payment fields, does not
-  recompute total_amount)
+- `PUT /:code/checkout` — Mark exit + payment (adds what is charged to what was
+  paid; a booking without a price takes it as its price)
 - `PUT /:code/cancel` — Cancel
 - `PUT /:code/no-show` — No-show (manual only, no cron)
 - `GET /overdue/list` — Bookings with `expected_checkout` past and still
@@ -232,10 +241,9 @@ in the git history if the feature is ever built.
 
 1. **`booking_code` vs `id`:** public URLs use `code`, DB keys use `id`. Don't
    confuse them — the frontend should never see `id`.
-2. **Calendar-day pricing:** arrival at 23:00 + departure at 10:00 = 1 day
-   (minimum 1). Not 2. If you ever switch to hours, you have to touch
-   `_calculateBookingDays()` and every test that depends on calendar-day
-   behavior.
+2. **No automatic price:** do not reintroduce a rate lookup without a screen to
+   maintain the rates; the old table drifted between databases unnoticed. A
+   price of 0 must stay 0 (`tests/parking/booking-price.test.ts`).
 3. **3 modes of `/stats`:** document well before extending. Adding a 4th mode
    without a clear reason complicates the consumer. Note: `/stats/occupancy`
    does not exist.

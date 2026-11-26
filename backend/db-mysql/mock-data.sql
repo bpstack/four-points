@@ -4,8 +4,8 @@
 -- Vacía los datos de los módulos y carga unos pocos registros ficticios en
 -- cada uno, con fechas relativas a hoy, para que ninguna pantalla salga vacía.
 --
--- NO TOCA: usuarios, roles, departamentos, métodos de pago, plazas y tarifas
--- de parking, categorías de backoffice y F&B, todo el módulo de horarios
+-- NO TOCA: usuarios, roles, departamentos, métodos de pago, plazas de
+-- parking, categorías de backoffice y F&B, todo el módulo de horarios
 -- (scheduling_*) ni la configuración del checklist.
 --
 -- NO CREA USUARIOS: usa los que ya existen, por rol. Necesita al menos un

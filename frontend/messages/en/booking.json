@@ -63,12 +63,8 @@
   },
   "details": {
     "title": "Booking details",
-    "priceManual": "Manual Price (optional)",
-    "priceTotal": "Total price (€)",
-    "totalAmount": "Total Amount (€)",
-    "totalAmountHint": "Optional, calculated automatically",
-    "pricePlaceholder": "Leave empty = auto",
-    "priceAutoPlaceholder": "Leave empty for automatic calculation",
+    "price": "Price (€, optional)",
+    "pricePlaceholder": "Can be set later",
     "source": "Source",
     "bookingSource": "Booking Source",
     "externalCode": "External Code (optional)",
@@ -102,7 +98,7 @@
     "exit": "Exit:",
     "price": "Price:",
     "priceTotal": "Total Price:",
-    "priceAuto": "Price will be calculated automatically"
+    "noPrice": "No price: it can be set later by editing the booking"
   },
   "actions": {
     "cancel": "Cancel",

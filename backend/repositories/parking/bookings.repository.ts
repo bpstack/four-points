@@ -37,10 +37,6 @@ interface OverlapCountRow extends RowDataPacket {
   overlapping: number
 }
 
-interface RatePriceRow extends RowDataPacket {
-  price: number
-}
-
 interface OccupiedCountRow extends RowDataPacket {
   count: number
 }
@@ -82,22 +78,6 @@ class ParkingBookingsRepository {
     if (rows[0].overlapping > 0) {
       throw new Error(message)
     }
-  }
-
-  // ============================================
-  // HELPER: Calcular días entre fechas
-  // ============================================
-  _calculateBookingDays(checkinDate: string | Date, checkoutDate: string | Date): number {
-    const checkin = new Date(checkinDate)
-    const checkout = new Date(checkoutDate)
-
-    const checkinDay = new Date(checkin.getFullYear(), checkin.getMonth(), checkin.getDate())
-    const checkoutDay = new Date(checkout.getFullYear(), checkout.getMonth(), checkout.getDate())
-
-    const diffTime = checkoutDay.getTime() - checkinDay.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    return Math.max(1, diffDays)
   }
 
   // ============================================
@@ -335,21 +315,9 @@ class ParkingBookingsRepository {
       // 2. Verificar disponibilidad (bloquea la plaza hasta el commit)
       await this._assertSpotFree(connection, spot_id, expected_checkin, expected_checkout, null)
 
-      // 3. Calcular precio SOLO si no se proporciona manualmente
-      let finalAmount = total_amount
-
-      if (!finalAmount) {
-        const days = this._calculateBookingDays(expected_checkin, expected_checkout)
-
-        const [rateRows] = await connection.query<RatePriceRow[]>(
-          'SELECT price FROM parking_rates WHERE days = ?',
-          [days]
-        )
-
-        finalAmount = rateRows.length > 0 ? rateRows[0].price : days * 15.0
-      }
-
-      // 4. Insertar booking (trigger genera booking_code automáticamente)
+      // 3. Insertar booking (trigger genera booking_code automáticamente).
+      // El precio es el que escribe el usuario: 0 es un precio válido y sin
+      // precio se guarda NULL (se pone después editando la reserva).
       const [result] = await connection.query<ResultSetHeader>(
         `INSERT INTO parking_bookings (
           spot_id, vehicle_id, operator_id, 
@@ -364,7 +332,7 @@ class ParkingBookingsRepository {
           operator_id,
           expected_checkin,
           expected_checkout,
-          finalAmount,
+          total_amount,
           booking_source,
           external_booking_id,
           notes,
@@ -479,25 +447,38 @@ class ParkingBookingsRepository {
         throw new Error(ERROR_CODES.PARKING_INVALID_DATES)
       }
 
-      const payment_date = payment_amount ? new Date() : null
+      // What is charged at check-out adds to what was already paid. Charging
+      // nothing leaves the previous payment (amount, method, reference, date)
+      // as it was: before, it was replaced and a paid booking lost its payment.
+      const current = booking[0]
+      const charged = payment_amount !== null && payment_amount > 0 ? payment_amount : 0
+      const paidBefore = current.payment_amount === null ? 0 : Number(current.payment_amount)
+      const paid = charged > 0 ? Math.round((paidBefore + charged) * 100) / 100 : null
+
+      // A booking without a price takes what is charged as its price
+      const total = current.total_amount === null && paid !== null ? paid : current.total_amount
 
       await connection.query(
-        `UPDATE parking_bookings 
-        SET status = ?, 
-            actual_checkout = ?, 
+        `UPDATE parking_bookings
+        SET status = ?,
+            actual_checkout = ?,
+            total_amount = ?,
             payment_amount = ?,
             payment_method = ?,
             payment_reference = ?,
             payment_date = ?,
-            updated_at = CURRENT_TIMESTAMP 
+            updated_at = CURRENT_TIMESTAMP
       WHERE id = ?`,
         [
           'completed',
           actual_checkout,
-          payment_amount,
-          payment_method,
-          payment_reference,
-          payment_date,
+          total,
+          paid ?? current.payment_amount,
+          paid !== null ? (payment_method ?? current.payment_method) : current.payment_method,
+          paid !== null
+            ? (payment_reference ?? current.payment_reference)
+            : current.payment_reference,
+          paid !== null ? new Date() : current.payment_date,
           id,
         ]
       )
@@ -1091,6 +1072,8 @@ class ParkingBookingsRepository {
       },
       status: row.status,
       payment: {
+        // NULL = no price yet (typed later); 0 is a real price
+        has_price: row.total_amount !== null,
         total_amount: parseFloat(String(row.total_amount || 0)),
         paid_amount: parseFloat(String(row.payment_amount || 0)),
         pending_amount:
