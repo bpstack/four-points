@@ -37,7 +37,7 @@ The screen has four tabs, with summary figures on top:
 
 ## What data it handles
 
-Five tables and three views (`backend/db-mysql/aiven/16_backoffice.sql`):
+Five tables and three views (`backend/db-mysql/schema.sql`):
 
 - **`bo_suppliers`**: suppliers, including tax id and bank account.
 - **`bo_categories`**: cost centre and department used to classify invoices.

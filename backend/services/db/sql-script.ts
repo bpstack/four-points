@@ -32,8 +32,8 @@ export function toMultiStatement(sql: string): string {
 }
 
 /**
- * Reads a .sql file and inlines its `SOURCE path;` lines (relative to root, as
- * MASTER_INSTALL.sql expects). `transform` may adjust each file's text first
+ * Reads a .sql file and inlines its `SOURCE path;` lines (relative to root).
+ * `transform` may adjust each file's text first
  */
 export async function readSqlScript(
   file: string,

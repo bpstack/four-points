@@ -44,7 +44,7 @@ entry, not even the backend. Not planned (decided on 2026-10-12).
 
 ## What data it handles
 
-Four tables (`backend/db-mysql/aiven/03_logbook_tables.sql`):
+Four tables (`backend/db-mysql/schema.sql`):
 
 - **`logbooks`**: the entry — text, author, department, importance, hotel date
   (`date`), whether it is resolved and who resolved it, and `deleted_at` if it

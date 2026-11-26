@@ -46,7 +46,7 @@ not planned (decided on 2026-10-12).
 
 ## What data it handles
 
-Three tables (`backend/db-mysql/aiven/14_messages.sql`):
+Three tables (`backend/db-mysql/schema.sql`):
 
 - **`conversations`**: type (`dm` or `group`), group name and creator.
 - **`conversation_participants`**: who is in each conversation, whether they are
@@ -59,7 +59,7 @@ Three tables (`backend/db-mysql/aiven/14_messages.sql`):
 - **90-day retention**: a MySQL event (`cleanup_old_messages`) deletes every day
   the messages older than 90 days and the conversations that are left without
   messages. It needs the MySQL event scheduler (`event_scheduler`) active, as it
-  is on local and Aiven.
+  is on the local and remote databases.
 - **Unread** = a message from another person after the last moment you opened
   that conversation (`last_read_at`).
 

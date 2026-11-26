@@ -289,11 +289,11 @@ The contract with the frontend is in the root `AGENTS.md`; here, where it lives.
 - Database `hotel_db`, local and remote — **both have data**. The remote one is
   a self-managed MySQL 8.4 with no scheduled backups (ADR-048): dump it with
   `db-mysql/backup/backup.ps1` before a schema migration.
-- ⚠️ **Never** run `MASTER_INSTALL*.sql` or `db-mysql/aiven/NN_*.sql` against
-  them: first-install scripts only. A fresh install is `pnpm setup:local`.
+- ⚠️ **Never** run anything from `db-mysql/_archive/` against them: it is the
+  old base schema, kept as history. A fresh install is `pnpm setup:local`.
 - Any schema change goes in a new idempotent `db-mysql/scripts/YYYYMMDD_*.sql`,
-  applied to local and remote, plus a row in the "Migraciones incrementales"
-  table of `db-mysql/INDEX.md`.
+  applied to local and remote, plus a row in the "Incremental migrations" list
+  of `db-mysql/INDEX.md`.
 - Policy, schema overview, roles and backups:
   [`db-mysql/AGENTS.md`](db-mysql/AGENTS.md). Read it before touching any table.
 

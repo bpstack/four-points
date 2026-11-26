@@ -39,14 +39,14 @@ deliberate for now (ADR-032).
 
 ## What data it handles
 
-Two tables (`backend/db-mysql/aiven/*`):
+Two tables (`backend/db-mysql/schema.sql`):
 
 - **`fnb_category`**: the 7 tracked Opera codes, each with a name, a group
   (`breakfast`/`lunch`/`dinner`) and a display order. Live data: 7 rows, e.g.
   `21110` → "Breakfast Buffet Included".
 - **`fnb_daily_revenue`**: one row per day and category code, with its amount.
-  This is real, actively growing production data — 439 rows in Aiven as of
-  2026-09-28, covering 2026-02-28 through 2026-05-21.
+  This is real, actively growing production data — 439 rows as of 2026-09-28,
+  covering 2026-02-28 through 2026-05-21.
 
 Category codes are hardcoded in the backend (`CATEGORY_CODES` in
 `fnb.repository.ts`) as fixed Opera codes mapped to 7 stable columns; they are

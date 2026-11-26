@@ -15,16 +15,17 @@ import {
 } from '../../repositories/backoffice/backoffice-columns.js'
 
 const schema = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), '../../db-mysql/aiven/16_backoffice.sql'),
+  join(dirname(fileURLToPath(import.meta.url)), '../../db-mysql/schema.sql'),
   'utf8'
 )
 
-// Column names of a CREATE TABLE block in the versioned schema
+// Column names of a CREATE TABLE block in the versioned schema (a mysqldump:
+// one backticked column per line, the block ends at `) ENGINE`)
 function columnsOf(table: string): Set<string> {
-  const start = schema.search(new RegExp(`CREATE TABLE[^(]*\\b${table}\\b\\s*\\(`))
+  const start = schema.indexOf('CREATE TABLE `' + table + '` (')
   expect(start, table).toBeGreaterThan(-1)
-  const body = schema.slice(start, schema.indexOf(';', start))
-  return new Set([...body.matchAll(/^\s*`?([a-z_]+)`?\s+[A-Z]/gm)].map((m) => m[1]))
+  const body = schema.slice(start, schema.indexOf('\n) ENGINE', start))
+  return new Set([...body.matchAll(/^ {2}`([a-z_]+)` /gm)].map((m) => m[1]))
 }
 
 describe('backoffice update columns', () => {

@@ -48,8 +48,7 @@ backend/routes/parking/
 - **`parking_bookings`**: bookings: spot, vehicle, expected dates, actual dates,
   status, source, payment, total
 - **`parking_availability`**: precomputed calendar: one row per spot and day,
-  kept by the triggers in
-  `backend/db-mysql/aiven/05_parking_functions_triggers.sql`; a job in
+  kept by the triggers in `backend/db-mysql/schema.sql`; a job in
   `services/cron/cron-service.ts` (`extendAvailability`, at startup and daily at
   03:00) keeps it covering the next 365 days
 

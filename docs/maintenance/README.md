@@ -38,7 +38,7 @@ state of, assigns, deletes and restores any report. This is deliberate for now
 
 ## What data it handles
 
-Three tables (`backend/db-mysql/aiven/13_maintenance.sql`):
+Three tables (`backend/db-mysql/schema.sql`):
 
 - **`maintenance_reports`**: the report — title, description, location (room,
   common area, exterior, facilities or other), priority, state, assignment,

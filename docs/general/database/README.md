@@ -99,10 +99,10 @@ backend (repositories) ─► mysql2 pool ─► TLS ─► remote MySQL (hotel_
 
 - **`schema.sql`** and **`catalogs.sql`**: the snapshot a fresh install loads.
 - **`scripts/`**: the incremental migrations and the tools: applying a
-  migration, comparing two schemas, taking a new snapshot, local backup and
-  collation check. All read the credentials from `backend/.env`.
-- **`aiven/`** and **`MASTER_INSTALL.sql`**: the old base schema of 2026-05-20,
-  named after the former host. Kept as history; never run.
+  migration, comparing two schemas, taking a new snapshot, and local backup. All
+  read the credentials from `backend/.env`.
+- **`_archive/`**: the old base schema of 2026-05-20 (`aiven/`, named after the
+  former host). Kept as history; never run.
 - **`backup/`**: database dumps, never committed.
 - **Two documents**: `AGENTS.md` (the rules: migrations, fresh install,
   comparing with production, backups) and `INDEX.md` (tables by module and the

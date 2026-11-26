@@ -216,5 +216,5 @@ patches.
 - `backend/models/cashier/index.ts` — all TypeScript types and enums.
 - `backend/middlewares/roleCheck.ts` → `canManageCashier` (admin, recepcionista,
   group-admin) and `canViewReports` (admin).
-- `backend/db-mysql/aiven/11_cashier.sql` — frozen schema baseline.
+- `backend/db-mysql/schema.sql` — schema.
 - `frontend/app/components/cashier/AGENTS.md` — UI, PDF export, React Query.

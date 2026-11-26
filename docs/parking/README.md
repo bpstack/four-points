@@ -37,7 +37,7 @@ charged, its method and reference stay editable in any booking state, also
 
 ## What data it handles
 
-Five tables (`backend/db-mysql/aiven/04_parking_tables.sql`):
+Five tables (`backend/db-mysql/schema.sql`):
 
 - **`parking_spots`**: the spaces — floor (`-2` or `-3`), number, type and
   whether it is active. Today there are 20: 10 per floor.

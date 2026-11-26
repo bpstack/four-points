@@ -17,28 +17,8 @@ the repo and production match.
 
 ## Layout
 
-```
-backend/db-mysql/
-├── schema.sql         # Structure of the remote DB (2026-11-26), loaded by setup:local
-├── catalogs.sql       # Catalog rows a fresh install needs, loaded after schema.sql
-├── scripts/           # Incremental migrations, YYYYMMDD_*.sql, and the tools below
-│   ├── apply-migration.sh  # Applies one migration to local or remote
-│   ├── local-env.sh        # Local credentials from backend/.env, sourced by the others
-│   ├── backup-local.sh     # Dumps the local DB into backup/
-│   ├── check-collation.sh  # Shows the local DB collation
-│   ├── compare-schema.sh   # Lists the schema differences between two local DBs
-│   └── snapshot-schema.sh  # Writes schema.sql and catalogs.sql
-├── aiven/             # Old baseline (2026-05-20). History: frozen, not loaded, never run
-├── MASTER_INSTALL.sql # Ran aiven/ in order. History: never run
-├── backup/            # DB dumps (local + remote), git-ignored; backup.ps1
-├── INDEX.md           # Tables by module + incremental migration log
-├── mock-data.sql      # Clears module data and loads fictitious data (keeps users and scheduling)
-└── scheduling-seed.sql # Demo scheduling base: employees, contracts, months
-```
-
-`aiven/` keeps the name of the host the database had until 2026-11-16. It is not
-renamed: `MASTER_INSTALL.sql` and the rollback notes of applied scripts point to
-it, and those files are never edited.
+What each file and folder is for is in [`README.md`](./README.md). Nothing in
+`_archive/` is loaded or run.
 
 ## Migration policy
 
@@ -51,24 +31,25 @@ it, and those files are never edited.
   the wrong character set: production had two such objects until
   `20261126_fix_charset_leftovers.sql`.
 - **Charset / collation**: always `utf8mb4` / `utf8mb4_0900_ai_ci`.
-- **Register in `INDEX.md`**: a row in the "Migraciones incrementales" table:
-  date, file, description, status per env (`✅ local · ✅ remota`,
-  `⏳ pendiente`). Rows up to 2026-10-14 say `Aiven`, the remote host until
-  2026-11-16; the current one was loaded from its dump, so they hold for it.
+- **Register in `INDEX.md`**: an entry in the "Incremental migrations" list:
+  date, file, description, status per env (`✅ local · ✅ remote`,
+  `⏳ pending`). Entries up to 2026-10-14 were applied on Aiven, the remote host
+  until 2026-11-16; the current one was loaded from its dump, so they hold for
+  it.
 - **Never modify a committed script**: if something went wrong, create a new
   `YYYYMMDD_fix_…sql` that corrects it (ADR-021).
 - **Apply order**: compare first (see "Production schema"), then local, then
   remote, with `scripts/apply-migration.sh` (see "Applying a migration"). Update
   `INDEX.md` after each.
-- **`aiven/NN_*.sql` are frozen** since 2026-05-20, each with a `⚠️ FROZEN`
-  header. Their headers cite `MIGRATIONS_POLICY.md`: that policy is now this
-  section.
+- **`_archive/aiven/NN_*.sql` are frozen** since 2026-05-20, each with a
+  `⚠️ FROZEN` header. Their headers cite `MIGRATIONS_POLICY.md`: that policy is
+  now this section.
 
 How it got here:
 
 1. **Until 2026-05-19, hybrid**: each change was written both in
-   `aiven/NN_*.sql` and in `scripts/`, and the two drifted apart whenever the
-   mirror was forgotten.
+   `aiven/NN_*.sql` (now `_archive/aiven/`) and in `scripts/`, and the two
+   drifted apart whenever the mirror was forgotten.
 2. **From 2026-05-20, incremental-only**: `aiven/` froze and every change went
    to `scripts/`. Installing meant the old baseline plus every script, and the
    result drifted from production in comments, column order and routine bodies.
@@ -131,8 +112,8 @@ a new snapshot: dump the remote, load it without `DEFINER` into a separate DB,
 run the script, review the result (the repo is public) and move the cut-off date
 in `setup-local.ts`.
 
-**Never run `MASTER_INSTALL.sql` or `aiven/NN_*.sql`**, and never against a DB
-with data: they drop or duplicate rows and build the old schema.
+**Never run anything from `_archive/`**, and never against a DB with data: it
+drops or duplicates rows and builds the old schema.
 
 ## Production schema
 
@@ -146,7 +127,7 @@ copy of the remote was compared with a repo install, object by object
   `event_scheduler`, binary log, collations).
 - **Differed, and how it was solved:**
   - `parking_rates` had other prices in production. The table went away: a
-    booking's price is typed by hand (`20261126_drop_parking_rates.sql`).
+    booking's price is typed by hand.
   - `v_bo_monthly_summary` and `trg_cashier_shift_update_daily` had been created
     from a `cp850` console in production; recreated with `utf8mb4`
     (`20261126_fix_charset_leftovers.sql`).
@@ -189,7 +170,7 @@ cd backend/db-mysql/scripts
 - Each script prints its own result (a skip message or the new definition), so
   the output shows whether it changed anything.
 - Running it twice is the idempotency check: the second run must skip.
-- Then set the row's status in `INDEX.md` (`✅ local · ✅ remota`).
+- Then set the entry's status in `INDEX.md` (`✅ local · ✅ remote`).
 
 ## Connecting to the remote database (production)
 
@@ -231,10 +212,10 @@ password.
 
 ## Known gotchas
 
-1. **`aiven/` and `MASTER_INSTALL.sql` are not the schema.** They stop at
-   2026-05-20 and list things the live databases never got:
-   `aiven/17_notifications.sql` had `'messages'` in `notifications.module`, the
-   live DB did not, and the urgent message notices failed silently until
+1. **`_archive/aiven/` is not the schema.** It stops at 2026-05-20 and lists
+   things the live databases never got: `_archive/aiven/17_notifications.sql`
+   had `'messages'` in `notifications.module`, the live DB did not, and the
+   urgent message notices failed silently until
    `20261004_add_messages_to_notifications_module.sql`. The schema is
    `schema.sql` + the `scripts/` dated after it; when in doubt, check
    `information_schema` on the target DB.
@@ -252,6 +233,7 @@ password.
 
 ## Cross references
 
+- `README.md` — what each file and folder of `db-mysql/` is for.
 - `INDEX.md` — tables by module + incremental migration log.
 - [`docs/general/database/README.md`](../../docs/general/database/README.md) —
   public summary of the database.

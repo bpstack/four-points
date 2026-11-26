@@ -43,7 +43,7 @@ reconciliation or closes a month.
 
 ## What data it handles
 
-Four tables (`backend/db-mysql/aiven/09_conciliation.sql`):
+Four tables (`backend/db-mysql/schema.sql`):
 
 - **`conciliation_summary`**: one row per day — the reception and housekeeping
   totals, their difference (calculated by the database), notes, status and soft

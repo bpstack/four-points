@@ -37,7 +37,11 @@ function fakeRes() {
 const req = {} as Request
 const DEMO = { id: 'd1', username: 'demo', role: 'admin', is_demo: 1, is_active: 1 }
 
-beforeEach(() => vi.clearAllMocks())
+// Every test starts without DEMO_MODE, whatever the local .env loaded
+beforeEach(() => {
+  vi.clearAllMocks()
+  delete process.env.DEMO_MODE
+})
 afterEach(() => {
   delete process.env.DEMO_MODE
 })

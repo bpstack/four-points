@@ -1093,6 +1093,8 @@
 - **Estado:** ✅ aceptada (2026-11-16) · 📌 Aiven como vuelta atrás y su CA,
   revisados por
   [ADR-049](#adr-049--la-bd-local-corre-en-docker-con-la-misma-versión-que-la-remota)
+  y dónde queda `aiven/`, por
+  [ADR-051](#adr-051--lo-congelado-de-db-mysql-sale-de-la-vista-aiven-a-_archive-master_installsql-borrado)
 - **Fecha:** 2026-11-16
 - **Decisión:**
   - **La BD compartida** (producción, preview y la demo pública) deja Aiven y
@@ -1177,7 +1179,9 @@
 
 ## ADR-050 — Una instalación nueva parte de una foto de la estructura de producción
 
-- **Estado:** ✅ aceptada (2026-11-26)
+- **Estado:** ✅ aceptada (2026-11-26) · 📌 lo que dejaba como historia,
+  revisado por
+  [ADR-051](#adr-051--lo-congelado-de-db-mysql-sale-de-la-vista-aiven-a-_archive-master_installsql-borrado)
 - **Fecha:** 2026-11-26
 - **Decisión:**
   - **`pnpm setup:local` carga `db-mysql/schema.sql`**, la estructura de la BD
@@ -1214,3 +1218,35 @@
   - `schema.sql` es público: un test comprueba que no lleve `DEFINER` ni
     direcciones del servidor, y se revisa a mano antes de cada commit.
 - **Revisa:** ADR-039 en cómo se instala la BD local.
+
+## ADR-051 — Lo congelado de `db-mysql/` sale de la vista: `aiven/` a `_archive/`, `MASTER_INSTALL.sql` borrado
+
+- **Estado:** ✅ aceptada (2026-11-26)
+- **Fecha:** 2026-11-26
+- **Decisión:**
+  - **`backend/db-mysql/aiven/` pasa a `backend/db-mysql/_archive/aiven/`.**
+    Sigue en el repositorio, sin editar, como historia.
+  - **`MASTER_INSTALL.sql` se borra.** Nada lo ejecutaba ni lo leía desde
+    ADR-050; git conserva el fichero.
+  - **`20261126_drop_parking_rates.sql` se borra** (y su fila de `INDEX.md`): ya
+    está aplicado en la remota y dentro de `schema.sql`, y no se quiere volver
+    atrás con las tarifas.
+  - **Los dos tests** que leían `aiven/16_backoffice.sql` y
+    `aiven/17_notifications.sql` leen ahora `schema.sql`, que es el esquema
+    vigente.
+  - **`backend/db-mysql/README.md`** explica para qué sirve cada fichero y
+    carpeta; `AGENTS.md` conserva solo las reglas.
+- **Motivo:** lo activo y lo congelado en la misma carpeta se confundían, y un
+  instalador con `DROP TABLE` se podía lanzar por su nombre. Las razones de
+  ADR-048 para dejar `aiven/` donde estaba (`setup-local.ts` y los tests) ya no
+  valían.
+- **Rechazado:** borrar también `aiven/`. Los SQL ya aplicados citan sus
+  ficheros en notas de vuelta atrás, y esas notas siguen sirviendo.
+- **Consecuencias:**
+  - Los comentarios de los scripts ya aplicados que citan `aiven/NN_*.sql` no se
+    tocan (ADR-021): la ruta ahora es `_archive/aiven/NN_*.sql`, y
+    `backend/db-mysql/AGENTS.md` lo dice.
+  - Los scripts de `scripts/` anteriores a la foto no se cargan en una
+    instalación nueva; siguen ahí porque son el registro de `INDEX.md`.
+- **Revisa:** ADR-048 en dónde queda `aiven/`, y ADR-050 en lo que dejaba como
+  historia hasta el repaso de `db-mysql/`.

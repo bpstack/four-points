@@ -214,7 +214,6 @@ them.
 - `backend/services/blacklist/cloudinary-service.ts` — shared Cloudinary
   upload/delete helper.
 - `backend/middlewares/roleCheck.ts` → `canAccessBackoffice` (admin).
-- `backend/db-mysql/aiven/16_backoffice.sql` — frozen schema (5 tables + 3
-  views).
+- `backend/db-mysql/schema.sql` — schema (5 tables + 3 views).
 - `frontend/app/lib/backoffice/backofficeApi.ts` — client-side API calls.
 - `frontend/app/lib/backoffice/data.ts` — server-side data fetchers.

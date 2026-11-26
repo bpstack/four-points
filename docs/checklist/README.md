@@ -52,7 +52,7 @@ versioned with the code. To see what was done in a day's run:
 `pnpm exec tsx --env-file=.env scripts/checklist-report.ts [checklist_id] [YYYY-MM-DD]`
 from `backend/`.
 
-**State** lives in six tables (`backend/db-mysql/aiven/20_checklist.sql`):
+**State** lives in six tables (`backend/db-mysql/schema.sql`):
 
 - **`checklist_runs`**: one row per checklist and hotel day, with when and why
   it was closed.

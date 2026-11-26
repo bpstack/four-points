@@ -16,12 +16,17 @@ import {
 } from '../../models/notifications/index.js'
 
 const schema = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), '../../db-mysql/aiven/17_notifications.sql'),
+  join(dirname(fileURLToPath(import.meta.url)), '../../db-mysql/schema.sql'),
   'utf8'
 )
 
+// schema.sql holds every table: keep only the notifications block
+const start = schema.indexOf('CREATE TABLE `notifications` (')
+const table = schema.slice(start, schema.indexOf('\n) ENGINE', start))
+
 function enumColumn(column: string): string[] {
-  const m = schema.match(new RegExp('`' + column + '` enum\\(([^)]*)\\)'))
+  expect(start, 'notifications table').toBeGreaterThan(-1)
+  const m = table.match(new RegExp('`' + column + '` enum\\(([^)]*)\\)'))
   expect(m, column).not.toBeNull()
   return [...m![1].matchAll(/'([^']+)'/g)].map((v) => v[1]).sort()
 }

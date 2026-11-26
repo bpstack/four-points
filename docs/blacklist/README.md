@@ -34,10 +34,10 @@ current (confirmed by the owner, ADR-032).
 
 ## What data it handles
 
-One table, `blacklist_entries` (`backend/db-mysql/aiven/12_blacklist.sql`):
-guest name, document type and number, check-in and check-out dates, reason,
-severity, comments, an `images` JSON array of Cloudinary URLs and public ids,
-status (`ACTIVE` or `DELETED`), who deleted it and when, who created it, and an
+One table, `blacklist_entries` (`backend/db-mysql/schema.sql`): guest name,
+document type and number, check-in and check-out dates, reason, severity,
+comments, an `images` JSON array of Cloudinary URLs and public ids, status
+(`ACTIVE` or `DELETED`), who deleted it and when, who created it, and an
 `audit_trail` JSON array logging every create, update, delete and restore with
 who did it, when, and — for updates — what changed.
 
