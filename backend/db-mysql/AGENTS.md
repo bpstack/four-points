@@ -25,7 +25,6 @@ backend/db-mysql/
 │   ├── apply-migration.sh  # Applies one migration to local or remote
 │   ├── local-env.sh        # Local credentials from backend/.env, sourced by the others
 │   ├── backup-local.sh     # Dumps the local DB into backup/
-│   ├── check-collation.sh  # Shows the local DB collation
 │   ├── compare-schema.sh   # Lists the schema differences between two local DBs
 │   └── snapshot-schema.sh  # Writes schema.sql and catalogs.sql
 ├── aiven/             # Old baseline (2026-05-20). History: frozen, not loaded, never run
