@@ -108,6 +108,11 @@ Nada ahora mismo.
 - **`main` está protegida** (ruleset `protect-main`): solo entra por PR, con los
   checks `backend` y `frontend` en verde y como merge commit (sin squash ni
   rebase); no admite force push ni borrado. La rama de trabajo no tiene reglas.
+- **Los tres equipos (`dz`, `combo`, `stackbp`) comparten la misma rama de
+  trabajo**, y si se trabaja desde dos a la vez puede divergir. Antes de
+  empezar, `git pull --ff-only`: si falla, hay commits distintos en cada equipo;
+  parar y avisar al dueño, **sin `--force`** (la rama no está protegida). Un
+  solo equipo empuja cada vez, y se empuja antes de cambiar de equipo.
 - **Preview y producción comparten la BD remota** y las cookies de sesión: lo
   que se prueba en preview cambia datos de producción, y entrar en preview
   sustituye la sesión de producción en ese navegador.
