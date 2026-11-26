@@ -125,10 +125,9 @@ Nada ahora mismo.
   contrastan siempre con el código y la BD.
 - **Nada de `docs/_archive/` se publica** (git lo ignora). Si algo de ahí debe
   ser público, se copia fuera.
-- **Enlaces rotos conocidos:** 3 ficheros fuera de `docs/` citan todavía
+- **Enlaces rotos conocidos:** 2 ficheros fuera de `docs/` citan todavía
   `Global-Plan.md`, `SCHEDULING-SOLVER-PLAN.md` o `SCHEDULING-CONSTRAINTS.md`,
-  ya archivados: `backend/db-mysql/MASTER_INSTALL.sql`,
-  `backend/db-mysql/aiven/19_scheduling.sql` y
+  ya archivados: `backend/db-mysql/_archive/aiven/19_scheduling.sql` y
   `backend/db-mysql/scripts/20260512_add_scheduling_solver_runs_and_requests.sql`.
   Son SQL ya aplicados y no se tocan (ADR-021); la sección equivalente es
   `docs/scheduling/constraints.md §7.5`.
