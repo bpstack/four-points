@@ -9,7 +9,7 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2'
 export type SpotType = 'normal' | 'ancha' | 'mas_ancha' | 'esquina' | 'accesible' | 'estrecha_bicis'
 export type LevelCode = '-2' | '-3'
 export type BookingStatus = 'reserved' | 'checked_in' | 'completed' | 'canceled' | 'no_show'
-// Same values as the ENUM columns of parking_bookings (db-mysql/aiven/04_parking_tables.sql)
+// Same values as the ENUM columns of parking_bookings (db-mysql/schema.sql)
 export type BookingSource = 'direct' | 'booking_com' | 'expedia' | 'airbnb' | 'agency_other'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'agency'
 
