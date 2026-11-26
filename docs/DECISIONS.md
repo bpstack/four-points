@@ -791,7 +791,8 @@
 
 ## ADR-038 — Un solo admin demo restringido y la instalación local con MySQL en Docker
 
-- **Estado:** ✅ aceptada (2026-10-05)
+- **Estado:** ✅ aceptada (2026-10-05) · 📌 MySQL en Docker, revisado por
+  [ADR-049](#adr-049--la-bd-local-corre-en-docker-con-la-misma-versión-que-la-remota)
 - **Fecha:** 2026-10-05
 - **Decisión:**
   - **Un solo usuario demo, con rol admin**, en lugar de uno por rol: como admin
@@ -833,6 +834,10 @@
 - **Estado:** ✅ aceptada (2026-10-05) · 📌 la BD compartida y su nombre,
   revisados por
   [ADR-048](#adr-048--la-bd-compartida-pasa-a-un-mysql-propio-y-el-preset-se-llama-remote)
+  · 📌 la BD local, revisada por
+  [ADR-049](#adr-049--la-bd-local-corre-en-docker-con-la-misma-versión-que-la-remota)
+  y
+  [ADR-050](#adr-050--una-instalación-nueva-parte-de-una-foto-de-la-estructura-de-producción)
 - **Fecha:** 2026-10-05
 - **Decisión:**
   - **Aiven** sigue siendo la única BD del proyecto que se comparte: producción,
@@ -1085,7 +1090,9 @@
 
 ## ADR-048 — La BD compartida pasa a un MySQL propio y el preset se llama `remote`
 
-- **Estado:** ✅ aceptada (2026-11-16)
+- **Estado:** ✅ aceptada (2026-11-16) · 📌 Aiven como vuelta atrás y su CA,
+  revisados por
+  [ADR-049](#adr-049--la-bd-local-corre-en-docker-con-la-misma-versión-que-la-remota)
 - **Fecha:** 2026-11-16
 - **Decisión:**
   - **La BD compartida** (producción, preview y la demo pública) deja Aiven y
@@ -1134,3 +1141,76 @@
   - Aiven queda encendido como vuelta atrás hasta su retirada; después se quita
     su CA del `.pem`.
 - **Revisa:** ADR-039 en cuál es la BD compartida.
+
+## ADR-049 — La BD local corre en Docker con la misma versión que la remota
+
+- **Estado:** ✅ aceptada (2026-11-26)
+- **Fecha:** 2026-11-26
+- **Decisión:**
+  - **La BD local corre en Docker** con `mysql:8.4`, la misma etiqueta que la
+    remota, y con su configuración: registro binario apagado, zonas horarias con
+    nombre cargadas, `event_scheduler` encendido, `utf8mb4_0900_ai_ci` y
+    `lower_case_table_names=0`. `docker-compose.yml` sigue teniendo solo MySQL.
+  - **Es el camino recomendado** para quien clona el repositorio; un MySQL 8.4
+    propio también sirve. El MySQL 8.0 nativo de Windows se retira.
+  - **El cliente** (`mysql`, `mysqldump`) es el de la 8.4, sin servidor: lo usan
+    `apply-migration.sh`, `backup.ps1` y los scripts de `db-mysql/scripts/`.
+  - **Aiven deja de ser la vuelta atrás** de la BD remota: su CA sale de
+    `ca-certificate.pem` sin esperar a que se apague el servicio.
+- **Motivo:** la local era un MySQL 8.0 nativo y la remota un 8.4: un script
+  podía funcionar en una y fallar en la otra. Además, en Windows
+  `lower_case_table_names=1` trata `Users` y `users` como la misma tabla y
+  escondía errores de mayúsculas que el servidor Linux sí daría. Con la misma
+  imagen y la misma configuración, lo que se prueba en local vale para
+  producción. Aiven ya no hace falta (decisión del propietario), y una CA que no
+  se usa es una confianza que sobra.
+- **Rechazado:**
+  - MySQL 8.4 nativo en Windows: conserva `lower_case_table_names=1` y deja un
+    servicio más instalado.
+  - El cliente del contenedor (`docker exec`): sirve para la local, pero
+    complica los volcados y las migraciones de la remota, que van con TLS y la
+    CA.
+- **Consecuencias:** cada equipo de desarrollo pasa a Docker por su cuenta; los
+  datos locales no se migran, se regeneran con `pnpm setup:local`.
+- **Revisa:** ADR-038 (MySQL en Docker, opcional y en 8.0), ADR-039 (la BD local
+  con MySQL propio o en Docker) y ADR-048 (Aiven como vuelta atrás y su CA).
+
+## ADR-050 — Una instalación nueva parte de una foto de la estructura de producción
+
+- **Estado:** ✅ aceptada (2026-11-26)
+- **Fecha:** 2026-11-26
+- **Decisión:**
+  - **`pnpm setup:local` carga `db-mysql/schema.sql`**, la estructura de la BD
+    remota sin filas, sin `DEFINER`, sin contadores `AUTO_INCREMENT` y sin las
+    `demo_snapshot_*`; después `db-mysql/catalogs.sql` (roles, métodos de pago,
+    plazas, categorías, configuración de horarios y checklist, y el usuario
+    `system-cron`) y solo los `scripts/` con fecha posterior a la foto.
+  - **Los dos ficheros los genera `scripts/snapshot-schema.sh`**: la estructura
+    sale de un volcado de la remota cargado en una base aparte; los catálogos,
+    de una instalación del repositorio, nunca de producción.
+  - **`MASTER_INSTALL.sql` y `aiven/` dejan de cargarse** y con ellos los tres
+    arreglos en memoria de `setup-local.ts`. Siguen en el repositorio como
+    historia hasta el repaso de `db-mysql/`.
+  - **Regla:** antes de cada migración, `compare-schema.sh` entre una
+    instalación del repositorio y una copia de la remota debe salir sin
+    diferencias; si no, se corrige primero.
+- **Motivo:** instalar era «foto de mayo + 16 scripts + 3 arreglos», y el
+  resultado se separaba de producción en comentarios, orden de columnas, cuerpos
+  y `sql_mode`. Con la foto, instalar da producción por construcción:
+  `compare-schema.sh` contra una copia de la remota sale con cero diferencias.
+- **Rechazado:**
+  - Mantener la foto de mayo con un script de alineación: menos cambio, pero la
+    instalación sigue recorriendo parches que producción nunca recorrió así.
+  - Copiar producción a local: tiene datos de personas, aunque sean de prueba, y
+    quien clona el repositorio no tiene acceso a la remota.
+- **Consecuencias:**
+  - Lo que estaba solo en producción pasa a ser lo oficial: textos de
+    comentarios, orden de columnas en `users` y `scheduling_assignments` y el
+    `sql_mode` ANSI de triggers y rutinas, heredado de Aiven. No cambia lo que
+    hace la aplicación.
+  - Un cambio de esquema sigue siendo un `scripts/AAAAMMDD_*.sql`; la foto se
+    puede volver a sacar cuando se acumulen scripts, y entonces sube la fecha de
+    corte de `setup-local.ts`.
+  - `schema.sql` es público: un test comprueba que no lleve `DEFINER` ni
+    direcciones del servidor, y se revisa a mano antes de cada commit.
+- **Revisa:** ADR-039 en cómo se instala la BD local.

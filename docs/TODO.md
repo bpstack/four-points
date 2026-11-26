@@ -89,12 +89,6 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
 - [ ] **Mensajería: el creador de un DM puede borrarlo entero**, mensajes del
       otro incluidos, sin registro. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Los documentos de `backend/db-mysql/` están desactualizados** — citan
-      `aiven/aiven-conexion.md` (no existe), «~50 tablas» (Aiven tiene 66 y 3
-      vistas), volcados con nombres que no son los actuales y la política «local
-      primero» (ADR-015). `MASTER_INSTALL.sql` solo llega al 2026-05-20. Se
-      corrigen poco a poco, con `docs/general/database/` como resumen (ADR-016).
-      _Comprobado por mí el 2026-09-28._
 - [ ] **La generación manual de notificaciones crea avisos duplicados** con
       varias peticiones a la vez: no hay clave única. (Desde el 2026-10-02 solo
       la lanzan admin y group-admin.) _Según la revisión `security` L3 del

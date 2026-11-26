@@ -1,20 +1,20 @@
 # Four-Points — Backend
 
-REST API in Express 5 + TypeScript over MySQL 8, with the scheduling solver
+REST API in Express 5 + TypeScript over MySQL 8.4, with the scheduling solver
 (Python + OR-Tools) as a child process. To install and run the whole project,
 see the [root README](../README.md).
 
 ## Layout
 
-| Folder                                                  | What it holds                                                          |
-| ------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `routes/`, `controllers/`, `services/`, `repositories/` | One folder per module                                                  |
-| `middlewares/`                                          | Auth, roles, demo restrictions, rate limits, uploads                   |
-| `config/`                                               | Database, CORS, logger, environment                                    |
-| `db-mysql/`                                             | Schema, migrations and seeds ([policy](db-mysql/MIGRATIONS_POLICY.md)) |
-| `scheduling-solver/`                                    | Python CP-SAT solver                                                   |
-| `scripts/`                                              | `setup:local`, demo user, scheduling seed export                       |
-| `tests/`                                                | Vitest suites ([notes](tests/README.md))                               |
+| Folder                                                  | What it holds                                              |
+| ------------------------------------------------------- | ---------------------------------------------------------- |
+| `routes/`, `controllers/`, `services/`, `repositories/` | One folder per module                                      |
+| `middlewares/`                                          | Auth, roles, demo restrictions, rate limits, uploads       |
+| `config/`                                               | Database, CORS, logger, environment                        |
+| `db-mysql/`                                             | Schema, migrations and seeds ([rules](db-mysql/AGENTS.md)) |
+| `scheduling-solver/`                                    | Python CP-SAT solver                                       |
+| `scripts/`                                              | `setup:local`, demo user, scheduling seed export           |
+| `tests/`                                                | Vitest suites ([notes](tests/README.md))                   |
 
 ## Commands
 

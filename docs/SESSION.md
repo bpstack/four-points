@@ -78,8 +78,6 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 ## Siguiente
 
 1. **Vigilar la memoria del servidor de la BD** la primera semana.
-2. **Cuando Aiven se apague:** quitar su CA de
-   `backend/config/certs/ca-certificate.pem`.
 
 Y de «Después de publicar» de `TODO.md`, por prioridad:
 
