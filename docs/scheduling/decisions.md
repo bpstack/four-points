@@ -564,6 +564,10 @@ migration: add the `CREATE TABLE` to `aiven/19_scheduling.sql` (or a new
 - ⏳ Aiven: deferred until fully validated locally.
 - ⏳ `MASTER_INSTALL.sql`: deferred together with Aiven.
 
+> **Superseded (2026-11-26):** the shared database left Aiven (ADR-048) and a
+> fresh install no longer loads `aiven/` or `MASTER_INSTALL.sql` (ADR-050). The
+> table is in `backend/db-mysql/schema.sql`, which is taken from production.
+
 **Phase 0 complete. Phase 1 (MVP Python CP-SAT solver) can start.**
 
 ---

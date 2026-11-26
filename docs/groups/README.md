@@ -49,7 +49,7 @@ right place.
 
 ## What data it handles
 
-Six tables (`backend/db-mysql/aiven/10_group-tracking.sql`):
+Six tables (`backend/db-mysql/schema.sql`):
 
 - **`hotel_groups`**: the group — name, agency, arrival and departure dates,
   status (pending, confirmed, in progress, completed, cancelled), total amount,

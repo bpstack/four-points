@@ -47,8 +47,8 @@ Every role **except `mantenimiento`**:
 
 ## What data it handles
 
-Nine tables (`backend/db-mysql/aiven/11_cashier.sql`), with every amount stored
-as `DECIMAL(10,2)`:
+Nine tables (`backend/db-mysql/schema.sql`), with every amount stored as
+`DECIMAL(10,2)`:
 
 - **`cashier_shifts`**: one row per shift and day — type, status (open, in
   progress, closed), opening fund, cash taken and its breakdown, totals, and who

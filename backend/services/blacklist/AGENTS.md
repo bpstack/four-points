@@ -20,7 +20,7 @@ list; creating, editing, and deleting requires authentication.
 
 ## DB table — `blacklist_entries`
 
-Single table (`backend/db-mysql/aiven/12_blacklist.sql`): `id`, `guest_name`,
+Single table (`backend/db-mysql/schema.sql`): `id`, `guest_name`,
 `document_type` (enum: DNI/PASSPORT/NIE/OTHER), `document_number`,
 `check_in_date`, `check_out_date`, `reason`, `severity` (enum:
 LOW/MEDIUM/HIGH/CRITICAL), `comments`, `images` (JSON array of API paths,
@@ -195,7 +195,7 @@ app/lib/blacklist/
 - `backend/services/blacklist/cloudinary-service.ts` — Cloudinary upload/delete
   (shared with auth, backoffice, maintenance and checklist).
 - `backend/services/uploads/blacklist-images.ts` — photo name ↔ API path.
-- `backend/db-mysql/aiven/12_blacklist.sql` — frozen schema.
+- `backend/db-mysql/schema.sql` — schema.
 - `frontend/app/lib/blacklist/blacklistApi.ts` — client-side API calls.
 - `frontend/app/components/blacklist/ui/ImageUploader.tsx` — two-step Cloudinary
   upload flow.

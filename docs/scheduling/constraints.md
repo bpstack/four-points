@@ -23,9 +23,9 @@ is, in [`decisions.md`](decisions.md).
 
 ## 1. Shift and absence codes
 
-Source: `scheduling_shifts` (seeded in
-`backend/db-mysql/aiven/19_scheduling.sql`). The times are the official
-references stored in the database; the actual agreement may vary (see §1.3).
+Source: `scheduling_shifts` (seeded in `backend/db-mysql/catalogs.sql`). The
+times are the official references stored in the database; the actual agreement
+may vary (see §1.3).
 
 ### 1.1 Work shifts (`is_work_shift=1`)
 
@@ -417,7 +417,7 @@ type; the effect is identical.
 
 Created on 2026-04-25
 (`backend/db-mysql/scripts/20260425_create_scheduling_employee_requests.sql`),
-and included in `backend/db-mysql/aiven/19_scheduling.sql`. Reference DDL:
+and included in `backend/db-mysql/schema.sql`. Reference DDL:
 
 ```sql
 CREATE TABLE scheduling_employee_requests (

@@ -220,7 +220,6 @@ phone) to every `canViewGroups` role, `mantenimiento` included, so it bypasses
 - `backend/middlewares/roleCheck.ts` → `canManageGroups` (admin, group-admin),
   `canViewGroups` (adds recepcionista and mantenimiento) and
   `canViewGroupContacts` (admin, recepcionista, group-admin).
-- `backend/db-mysql/aiven/10_group-tracking.sql` — frozen schema baseline (6
-  tables).
+- `backend/db-mysql/schema.sql` — schema (6 tables).
 - `frontend/app/components/groups/AGENTS.md` — UI, tab navigation, panels, React
   Query.

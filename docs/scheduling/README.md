@@ -55,8 +55,7 @@ absence).
 
 ## What data it handles
 
-Twelve tables (`backend/db-mysql/aiven/19_scheduling.sql` plus migrations in
-`backend/db-mysql/scripts/`):
+Twelve tables (`backend/db-mysql/schema.sql`):
 
 - **`scheduling_months`**, **`scheduling_days`** and
   **`scheduling_assignments`**: the months, their days (with holidays) and the
