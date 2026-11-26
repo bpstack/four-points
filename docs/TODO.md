@@ -106,6 +106,26 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       manuales) y la pantalla no lo llama: decidido el 2026-10-11 dejar el
       endpoint como está; antes de usarlo, cambiar la clave única. _Comprobado
       el 2026-10-11._
+- [ ] **Una sesión vieja rompe la app tras `setup:local`** — el admin nuevo
+      tiene otro `id`, y un token anterior (el JWT no consulta la base) sigue
+      leyendo pero falla al escribir (`fk_invoice_updated_by`). Backoffice, con
+      datos cargados en el servidor, entra en bucle: 401 → `/login` →
+      `/dashboard`. Con sesión nueva carga bien. Idea: admin con `id` fijo en
+      `setup-local.ts`, o cerrar sesión tras instalar. _Hallado el 2026-11-26._
+- [ ] **Parking: textos, notas y fechas por pulir** — todo hallado el 2026-11-26
+      al quitar las tarifas automáticas:
+  - `useBookingWizard.ts`: errores y avisos escritos en español a mano, sin
+    traducción.
+  - Notas: 500 caracteres al crear y 16 000 al editar.
+  - «La entrada no puede ser en el pasado» usa el día del servidor (UTC) y no el
+    de Madrid (ADR-047).
+  - Dos pantallas para editar una reserva: el modal de `BookingsListClient` y
+    `EditBookingModal` del detalle.
+  - La salida sustituye las notas de la reserva por las «Observaciones» que se
+    escriben en ella.
+- [ ] **Pasar el portátil (`combo`) y Ubuntu (`stackbp`) a la BD local en Docker
+      8.4** — cada equipo, con una sesión abierta allí (ADR-049). Los pasos
+      están fuera del repositorio.
 
 ### 🟢 Baja
 
@@ -138,3 +158,15 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       `pytest`, así que la suite de Python no se puede lanzar. Recrearlo con
       3.11 e instalar `requirements.txt` + `pytest` (lo hace el dueño).
       _Comprobado el 2026-10-13._
+- [ ] **Rutinas de la base sin uso** — de las 6 que quedan, la aplicación solo
+      llama a `generate_availability` (desde `mock-data.sql`). Las otras 5 son
+      código muerto en la base; quitarlas pide un script nuevo e idempotente.
+      _Comprobado el 2026-11-26._
+- [ ] **`tests/auth/demo-login.test.ts` depende del entorno** — falla en local
+      si el `.env` tiene `DEMO_MODE`; en la CI, sin `.env`, pasa.
+- [ ] **`mock-data.sql`: la reserva 3 tiene la entrada hoy a las 13:00** — antes
+      de esa hora no se le puede hacer la salida (la validación acierta).
+- [ ] **Aviso `DEP0123` al arrancar el backend** — Node no admite una IP como
+      `ServerName` de TLS, y `REMOTE_DB_HOST` es una IP. No rompe nada y ya
+      salía antes; se arregla usando un nombre de host. _Decidido el 2026-11-26
+      dejarlo._

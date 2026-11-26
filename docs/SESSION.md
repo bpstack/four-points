@@ -7,7 +7,7 @@
 Lo que no encaje aquí es una decisión (a `DECISIONS.md`), un hallazgo (a su
 propio fichero) o ruido (se borra).
 
-**Última actualización:** 2026-11-16
+**Última actualización:** 2026-11-26
 
 ---
 
@@ -26,15 +26,23 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
   `api-preview.four-points.stackbp.es`, desde
   `claude/compassionate-planck-gh6aof`, sobre la misma BD remota.
 - **BD remota:** desde el 2026-11-16 es un MySQL 8.4 propio, cargado con el
-  volcado de Aiven (ADR-048); en `main` desde el PR #32, que añadió su CA. Aiven
-  sigue encendido como vuelta atrás hasta el 21 de diciembre de 2026.
+  volcado de Aiven (ADR-048); en `main` desde el PR #32. Aiven ya no es vuelta
+  atrás ni se usa (ADR-049): su CA salió del `.pem` el 2026-11-26.
 - **Renombrado a `remote`, terminado** (2026-11-16): preview y producción usan
   `REMOTE_DB_*` y `DB_ENVIRONMENT=remote` (PR #33 y #34 en `main`), y el código
   ya no lee `AIVEN_*` ni acepta el preset `aiven`.
-- **Local:** `pnpm setup:local` instala desde cero con admin completo, datos
-  ficticios y la base de horarios de la demo (`scheduling-seed.sql`).
+- **Local:** MySQL 8.4 en Docker, igual que la remota (ADR-049).
+  `pnpm setup:local` instala desde cero con `schema.sql` y `catalogs.sql`, una
+  foto de la estructura de producción (ADR-050), más los scripts posteriores;
+  admin completo, datos ficticios y la base de horarios de la demo
+  (`scheduling-seed.sql`). `backend/db-mysql/scripts/compare-schema.sh` mide las
+  diferencias entre dos bases y se pasa antes de cada migración. Desde el
+  2026-11-26 la remota y una instalación nueva tienen el mismo esquema (salvo
+  `demo_snapshot_*`).
+- **Parking:** el precio de cada reserva se escribe a mano y es opcional; las
+  tarifas automáticas y la tabla `parking_rates` ya no existen (PR #35).
 - **Repositorio original:** `four-points-archive`, archivado y privado.
-- **Decisiones:** `DECISIONS.md`, hasta ADR-048.
+- **Decisiones:** `DECISIONS.md`, hasta ADR-050.
 - **Harness:** capa 1 en `backend/AGENTS.md` y `frontend/AGENTS.md`; el
   `AGENTS.md` raíz guarda lo común y los tres niveles se enlazan entre sí
   (ADR-042, ADR-043). La sesión se abre en la raíz y activa el Node de cada lado
