@@ -59,6 +59,17 @@ frontend/app/components/parking/
        ├── PaymentModal.tsx
        └── InfoCard.tsx
 
+frontend/app/components/booking/BookingWizard/   (creates every booking)
+   ├── index.tsx                   (two variants: 'full' page for bookings/new,
+   │                                'modal' side panel for the status view)
+   ├── hooks/useBookingWizard.ts   (state, availability search, create)
+   ├── steps/
+   │   ├── VehicleStep.tsx         (search or register the vehicle)
+   │   ├── DateSpotStep.tsx        (page: dates, spot search, price…)
+   │   ├── DateOnlyStep.tsx        (panel: dates and price; the spot comes pre-selected)
+   │   └── ConfirmationStep.tsx
+   └── types.ts
+
 frontend/app/lib/parking/
    ├── queries.ts                  (~320 lines — parkingApi: apiClient calls, no React Query hooks here)
    ├── types.ts                    (~360 lines — every DTO)

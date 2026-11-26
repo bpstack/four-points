@@ -221,8 +221,10 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
     )
   }
 
-  // Payment status helpers
-  const isPaid = booking.payment.pending_amount === 0
+  // Payment status helpers. A booking without a price is not "paid": the price
+  // is typed by hand and may still be missing
+  const hasPrice = booking.payment.has_price
+  const isPaid = hasPrice && booking.payment.pending_amount <= 0
   const paymentPercentage =
     booking.payment.total_amount > 0
       ? Math.round((booking.payment.paid_amount / booking.payment.total_amount) * 100)
@@ -490,7 +492,11 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                       isPaid ? 'bg-[#1a7f37] text-white' : 'bg-[#9a6700] text-white'
                     }`}
                   >
-                    {isPaid ? t('bookingDetail.payment.paid') : `${paymentPercentage}%`}
+                    {!hasPrice
+                      ? t('bookingDetail.payment.noPrice')
+                      : isPaid
+                        ? t('bookingDetail.payment.paid')
+                        : `${paymentPercentage}%`}
                   </span>
                 </div>
               </div>
@@ -500,7 +506,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                 <div className="flex justify-between items-center pb-3 border-b border-border">
                   <span className="text-xs text-fg-muted">{t('bookingDetail.payment.total')}</span>
                   <span className="text-xl font-bold text-fg">
-                    {booking.payment.total_amount.toFixed(2)} €
+                    {hasPrice ? `${booking.payment.total_amount.toFixed(2)} €` : '—'}
                   </span>
                 </div>
 
@@ -563,6 +569,12 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                       </div>
                     )}
                   </div>
+                )}
+
+                {!hasPrice && (
+                  <p className="mt-3 text-xs text-fg-muted">
+                    {t('bookingDetail.payment.noPriceHint')}
+                  </p>
                 )}
 
                 {/* Register Payment Button */}

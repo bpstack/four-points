@@ -191,7 +191,7 @@
     "cash": "Cash",
     "card": "Card",
     "transfer": "Transfer",
-    "other": "Other"
+    "agency": "Agency"
   },
   "messages": {
     "checkInSuccess": "Check-in completed successfully",
@@ -278,7 +278,9 @@
       "date": "Date",
       "registerPayment": "Register Payment",
       "modifyPayment": "Modify Payment",
-      "pendingWarning": "Pending payment: {amount} EUR"
+      "pendingWarning": "Pending payment: {amount} EUR",
+      "noPrice": "No price",
+      "noPriceHint": "Edit the booking to set a price before charging it."
     },
     "actions": {
       "edit": "Edit",
@@ -336,6 +338,7 @@
     "referencePlaceholder": "Transaction number, receipt...",
     "notes": "Notes (optional)",
     "notesPlaceholder": "Observations...",
+    "noPriceHint": "No price: what you charge now becomes the price of the booking.",
     "cancel": "Cancel",
     "confirm": "Confirm Check-out"
   },

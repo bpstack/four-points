@@ -31,10 +31,7 @@ charged, its method and reference stay editable in any booking state, also
   or origin, but the screen does not offer it.
 - **New booking**: space, vehicle (searched by licence plate or owner, or
   registered), expected dates, origin (direct, Booking, Expedia, Airbnb,
-  agency), external reference and notes. The price is calculated automatically,
-  but can be set manually. **Today the origin and external reference are lost
-  when creating** the booking (it stays "direct"); they are only saved if it is
-  edited afterwards.
+  agency), external reference, notes and an optional price, typed by hand.
 - **Booking detail** (`/dashboard/parking/bookings/<code>`): edit dates or
   space, register entry and exit, charge and delete.
 
@@ -49,8 +46,6 @@ Five tables (`backend/db-mysql/aiven/04_parking_tables.sql`):
 - **`parking_bookings`**: the booking — code, space, vehicle, expected and real
   dates, state, amount, payment (amount, method, reference, date), origin and
   who created and modified it.
-- **`parking_rates`**: price according to the **number of days**, from 1 to 30.
-  It does not depend on the space type.
 - **`parking_availability`**: a **precalculated calendar**, with one row per
   space and day that says whether it is free and which booking occupies it.
 
@@ -59,11 +54,13 @@ Part of the logic lives **in the database**: the triggers in
 calendar up to date.
 
 The database also has 2 functions (`check_availability`,
-`get_total_availability`) and 5 procedures (`06_parking_procedures.sql`) that
+`get_total_availability`) and 4 procedures (`06_parking_procedures.sql`) that
 **nothing calls**, neither the code nor the triggers; only the local seeds run
 `generate_availability`, which the backend replaced with `extendAvailability`.
 `daily_parking_maintenance` would mark expired bookings as no-shows if someone
-ran it by hand. They stay in the database (decided on 2026-10-12).
+ran it by hand. They stay in the database (decided on 2026-10-12). A fifth
+procedure, `get_available_spots`, was dropped on 2026-11-26 with the rates table
+it read.
 
 ## What rules it follows
 
@@ -97,13 +94,18 @@ reserved ──► checked_in ──► completed
 
 **Price**
 
-- Calendar days between expected entry and exit are counted, with a minimum of
-  1: entering on the 25th at 23:00 and leaving on the 26th at 10:00 is 1 day.
-- The price comes from `parking_rates` for that number of days. There are
-  packages: 7 days cost less than 6, and 30 less than 29. From 31 days there is
-  no rate and 15 € per day are charged.
-- When charging, what is paid is saved separately from the calculated amount,
-  with method (cash, card, transfer, agency) and reference.
+- The price of each booking is typed by hand, when creating it or later by
+  editing it. There are no automatic rates: prices change too often to keep them
+  in a table.
+- It is optional: a booking without a price cannot be charged until one is set.
+  0 is a valid price.
+- The days shown are calendar days between expected entry and exit: entering on
+  the 25th at 23:00 and leaving on the 26th at 10:00 is 1 day.
+- When charging, what is paid is saved separately from the price, with method
+  (cash, card, transfer, agency) and reference.
+- At check-out, what is charged adds to what was already paid; charging nothing
+  keeps the payment made during the stay. A booking without a price takes what
+  is charged at check-out as its price.
 
 **Others**
 

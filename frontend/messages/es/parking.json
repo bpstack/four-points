@@ -191,7 +191,7 @@
     "cash": "Efectivo",
     "card": "Tarjeta",
     "transfer": "Transferencia",
-    "other": "Otro"
+    "agency": "Agencia"
   },
   "messages": {
     "checkInSuccess": "Check-in realizado correctamente",
@@ -278,7 +278,9 @@
       "date": "Fecha",
       "registerPayment": "Registrar Pago",
       "modifyPayment": "Modificar Pago",
-      "pendingWarning": "Pago pendiente: {amount} EUR"
+      "pendingWarning": "Pago pendiente: {amount} EUR",
+      "noPrice": "Sin precio",
+      "noPriceHint": "Edita la reserva para ponerle precio y poder cobrarla."
     },
     "actions": {
       "edit": "Editar",
@@ -336,6 +338,7 @@
     "referencePlaceholder": "Número de operación, recibo...",
     "notes": "Notas (opcional)",
     "notesPlaceholder": "Observaciones...",
+    "noPriceHint": "Sin precio: lo que cobres ahora será el precio de la reserva.",
     "cancel": "Cancelar",
     "confirm": "Confirmar Check-out"
   },

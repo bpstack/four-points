@@ -147,13 +147,14 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
       {/* Detalles adicionales */}
       <SlidePanelSection title={t('details.title')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label={t('details.priceTotal')}>
+          <FormField label={t('details.price')}>
             <input
               type="number"
               step="0.01"
+              min="0"
               value={state.reservationData.total_amount}
               onChange={(e) => actions.setReservationData({ total_amount: e.target.value })}
-              placeholder={t('details.priceAutoPlaceholder')}
+              placeholder={t('details.pricePlaceholder')}
               className={inputClassName}
             />
           </FormField>

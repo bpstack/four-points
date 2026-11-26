@@ -95,7 +95,7 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
           )}
           {!state.reservationData.total_amount && (
             <div className="text-xs text-fg-muted pt-2 border-t border-border">
-              {t('confirmation.priceAuto')}
+              {t('confirmation.noPrice')}
             </div>
           )}
         </div>
@@ -231,6 +231,11 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
               </span>
             </div>
           </div>
+        )}
+        {!state.reservationData.total_amount && (
+          <p className="pt-3 sm:pt-4 border-t border-border text-xs text-fg-muted">
+            {t('confirmation.noPrice')}
+          </p>
         )}
       </div>
 

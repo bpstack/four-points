@@ -31,7 +31,9 @@ export const createBookingSchema = z
     vehicle_id: z.number().int().positive('Vehículo requerido'),
     expected_checkin: dateTimeSchema,
     expected_checkout: dateTimeSchema,
-    total_amount: z.number().positive().optional(),
+    // Optional and typed by hand: 0 is a valid price; without one the booking
+    // is stored with NULL and priced later. Same range as on update
+    total_amount: z.number().min(0).max(99_999_999.99).optional(),
     booking_source: bookingSource.optional().default('direct'),
     external_booking_id: z.string().max(64).optional(),
     notes: z.string().max(500).optional(),
@@ -76,6 +78,16 @@ export const updateBookingBodySchema = z.object({
   booking_source: bookingSource.optional(),
   external_booking_id: z.string().max(64).nullable().optional(),
   notes: z.string().max(16000).nullable().optional(),
+  payment_amount: amount.optional(),
+  payment_method: z.enum(['cash', 'card', 'transfer', 'agency']).nullable().optional(),
+  payment_reference: z.string().max(100).nullable().optional(),
+})
+
+// PUT /bookings/:code/checkout payment fields. payment_amount is what is
+// charged at check-out: it is added to what was already paid, and empty or 0
+// charges nothing. Before, nothing was checked: an unknown method reached the
+// ENUM and the request failed
+export const checkoutPaymentSchema = z.object({
   payment_amount: amount.optional(),
   payment_method: z.enum(['cash', 'card', 'transfer', 'agency']).nullable().optional(),
   payment_reference: z.string().max(100).nullable().optional(),
