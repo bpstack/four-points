@@ -1,9 +1,9 @@
 // tests/security/setup-local.test.ts
-// pnpm setup:local (ADR-038) installs from the frozen baseline and fixes, in
-// memory, the bugs that stop a fresh install. Each fix is an exact
-// replacement: these tests fail as soon as the baseline text changes, and keep
-// the guards that stop MASTER_INSTALL.sql (it drops hotel_db) from running
-// anywhere but a local, empty database. Reads the sources; no database needed.
+// pnpm setup:local (ADR-038, ADR-050) installs from the snapshot of the remote
+// structure (db-mysql/schema.sql) and its catalogs. The repository is public:
+// these tests keep server details out of the snapshot, and keep the guards that
+// stop the install (it drops hotel_db) from running anywhere but a local, empty
+// database. Reads the sources; no database needed.
 
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
@@ -13,25 +13,27 @@ import { fileURLToPath } from 'node:url'
 const backend = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const read = (...p: string[]) => readFileSync(join(backend, ...p), 'utf8').replace(/\r\n/g, '\n')
 const setup = read('scripts', 'setup-local.ts')
+const schema = read('db-mysql', 'schema.sql')
+const catalogs = read('db-mysql', 'catalogs.sql')
 
-// The fixes, as written in the script (file, from)
-const fixes = [...setup.matchAll(/file: '([^']+)',\s*from: '([^']+)'/g)].map((m) => ({
-  file: m[1],
-  // The source writes newlines as the two characters \ and n
-  from: m[2].split(String.raw`\n`).join('\n'),
-}))
-
-describe('setup:local baseline fixes', () => {
-  it('lists the known fixes', () => {
-    expect(fixes.map((f) => f.file)).toEqual([
-      '11_cashier.sql',
-      '11_cashier.sql',
-      '19_scheduling.sql',
-    ])
+describe('setup:local snapshot', () => {
+  it.each([
+    ['schema.sql', schema],
+    ['catalogs.sql', catalogs],
+  ])('%s carries no definer, host or address of the server', (_file, sql) => {
+    expect(sql).not.toMatch(/DEFINER\s*=/i)
+    expect(sql).not.toMatch(/\b(\d{1,3}\.){3}\d{1,3}\b/)
+    expect(sql).not.toMatch(/cmp_prod|cmp_repo/)
   })
 
-  it.each(fixes)('$file still has the text it replaces, exactly once', ({ file, from }) => {
-    expect(read('db-mysql', 'aiven', file).split(from)).toHaveLength(2)
+  it('schema.sql has structure only: no rows, counters or runtime demo tables', () => {
+    expect(schema).not.toMatch(/^INSERT/m)
+    expect(schema).not.toMatch(/AUTO_INCREMENT=\d/)
+    expect(schema).not.toContain('demo_snapshot_')
+  })
+
+  it('catalogs.sql has rows only', () => {
+    expect(catalogs).not.toMatch(/^(CREATE|DROP|ALTER)\b/im)
   })
 })
 
@@ -43,9 +45,7 @@ describe('setup:local guards', () => {
 
   it('refuses a database that already has tables unless --force', () => {
     expect(setup).toContain("process.argv.includes('--force')")
-    expect(setup.indexOf("includes('--force')")).toBeLessThan(
-      setup.indexOf("MASTER_INSTALL.sql'), DB_DIR")
-    )
+    expect(setup.indexOf("includes('--force')")).toBeLessThan(setup.indexOf('DROP DATABASE'))
   })
 
   it('uses the public local admin password documented in the README', () => {

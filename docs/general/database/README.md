@@ -61,12 +61,13 @@ Tables by module:
   another one is written that fixes it.
 - **`aiven/` is the frozen base schema** as of 2026-05-20. The name is
   misleading: it is not "the Aiven database", but the initial installation that
-  runs `MASTER_INSTALL.sql`. It is never run against a database with data. Two
-  of its files fail on an empty server (a duplicate foreign key name in
-  `11_cashier.sql`, a foreign key to a later table in `19_scheduling.sql`):
-  `pnpm setup:local` fixes both in memory, and
-  `20261005_complete_fresh_install.sql` adds what an install made by hand
-  misses.
+  runs `MASTER_INSTALL.sql`. It is never run against a database with data, and
+  `pnpm setup:local` no longer loads it (ADR-050).
+- **A fresh install starts from a snapshot of production**: `schema.sql` (the
+  remote structure, without rows) and `catalogs.sql` (the catalog rows, taken
+  from the repo), then only the scripts dated after the snapshot. Before every
+  migration, `compare-schema.sh` between a repo install and a copy of the remote
+  must show no differences.
 - **Character set**: `utf8mb4` with `utf8mb4_0900_ai_ci`, which does not
   distinguish case or accents when comparing texts.
 - **Time**: every backend session runs in **UTC**. What the database calculates

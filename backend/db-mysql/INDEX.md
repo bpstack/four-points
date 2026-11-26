@@ -31,7 +31,9 @@ db-mysql/
 │   ├── backup_hotel_db-local.sql
 │   └── backup_hotel_db-aiven.sql
 │
-├── MASTER_INSTALL.sql        # Instalación completa (apunta a aiven/)
+├── schema.sql                # Estructura de la remota (2026-11-26): la carga setup:local
+├── catalogs.sql              # Filas de los catálogos de una instalación nueva
+├── MASTER_INSTALL.sql        # Base vieja (apunta a aiven/), ya no se carga
 ├── INDEX.md
 ├── README.md
 ├── cleanup-scheduling.sql

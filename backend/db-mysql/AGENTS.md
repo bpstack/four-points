@@ -16,7 +16,9 @@ idempotent, registered in `INDEX.md`. Nothing else.
 
 ```
 backend/db-mysql/
-├── aiven/             # FROZEN baseline snapshot (2026-05-20). Never edit.
+├── schema.sql         # Structure of the remote DB (2026-11-26), loaded by setup:local
+├── catalogs.sql       # Catalog rows a fresh install needs, loaded after schema.sql
+├── aiven/             # FROZEN baseline snapshot (2026-05-20). Never edit. Not loaded any more (ADR-050)
 │   ├── 01_create_database.sql … 20_checklist.sql
 │   └── 99_verification.sql
 ├── scripts/           # Incremental migrations — the single source of truth
@@ -27,6 +29,8 @@ backend/db-mysql/
 │   ├── local-env.sh        # Local credentials from backend/.env, sourced by the others
 │   ├── backup-local.sh     # Dumps the local DB into backup/
 │   ├── check-collation.sh  # Shows the local DB collation
+│   ├── compare-schema.sh   # Lists the schema differences between two local DBs
+│   ├── snapshot-schema.sh  # Writes schema.sql and catalogs.sql
 │   └── recreate-local.sh   # ⚠️ Drops the local DB and runs MASTER_INSTALL.sql only
 ├── backup/            # DB dumps (local + remote), git-ignored; backup.ps1
 ├── MASTER_INSTALL.sql # Runs all aiven/ files in order. Empty DB only.
@@ -93,14 +97,18 @@ pnpm setup:local          # refuses a DB that is not local or already has tables
 pnpm setup:local -- --force   # drops an existing local hotel_db first
 ```
 
-`scripts/setup-local.ts` runs `MASTER_INSTALL.sql`, then only the incremental
-scripts from `20260521` on (the earlier ones are already in the baseline), then
-the departments, a local admin (`admin` / `fourpoints-local`),
-`scheduling-seed.sql` and `mock-data.sql`. Running `MASTER_INSTALL.sql` by hand
-fails: the frozen baseline has a duplicated key name in `cashier_history` and
-creates `scheduling_assignments` before the table it references. The script
-patches both in memory; `20261005_complete_fresh_install.sql` creates what the
-baseline leaves out.
+`scripts/setup-local.ts` creates `hotel_db`, loads `schema.sql` and
+`catalogs.sql`, then only the incremental scripts dated after the snapshot
+(`FIRST_SCRIPT_AFTER_SNAPSHOT`), then the departments, a local admin (`admin` /
+`fourpoints-local`), `scheduling-seed.sql` and `mock-data.sql` (ADR-050).
+
+`schema.sql` is the remote structure without rows, `DEFINER`, `AUTO_INCREMENT`
+counters or `demo_snapshot_*` tables; `catalogs.sql` comes from a repo install,
+never from production. Both are written by `scripts/snapshot-schema.sh`. To take
+a new snapshot: dump the remote, load it without `DEFINER` into a separate DB,
+run the script, review the result (the repo is public) and move the cut-off date
+in `setup-local.ts`. `MASTER_INSTALL.sql` and `aiven/` are kept as history; do
+not run them.
 
 Idempotency guarantees applying all scripts twice leaves the DB intact.
 
@@ -108,6 +116,10 @@ Idempotency guarantees applying all scripts twice leaves the DB intact.
 has data.** They will overwrite or duplicate rows.
 
 ## Applying a migration
+
+**Before every migration**, a repo install and a copy of the remote must match:
+`scripts/compare-schema.sh <copy_of_remote> hotel_db` with no differences. If
+they differ, fix that first: it is what keeps the repo equal to production.
 
 `scripts/apply-migration.sh` runs one `scripts/YYYYMMDD_*.sql` against local or
 remote. It reads the credentials from `backend/.env` (`LOCAL_DB_*` or
@@ -171,8 +183,8 @@ password.
 ## Known gotchas
 
 1. **`MASTER_INSTALL.sql` is out of date.** It reflects the schema as of
-   2026-05-20, not today. For the current schema, you need baseline + all
-   `scripts/` in order.
+   2026-05-20, not today. The current schema is `schema.sql` + the `scripts/`
+   dated after it.
 2. **Retroactive scripts.** Scripts tagged `[RETROACTIVE]` in `INDEX.md`
    document schema changes that were made by directly editing `aiven/NN_*.sql`
    before the incremental-only policy existed (pre-2026-04-25). They are

@@ -37,7 +37,9 @@ db-mysql/
 ├── scripts/                        # Incrementales — única fuente de verdad post-2026-05-20
 │   ├── AAAAMMDD_*.sql              # Idempotentes, registrados en INDEX.md
 │   └── apply-migration.sh          # Aplica una migración a local o remota (credenciales de backend/.env)
-├── MASTER_INSTALL.sql              # Snapshot 2026-05-20 (base congelada)
+├── schema.sql                      # Estructura de la remota (2026-11-26): la carga setup:local
+├── catalogs.sql                    # Filas de los catálogos, después de schema.sql
+├── MASTER_INSTALL.sql              # Snapshot 2026-05-20 (base congelada, ya no se carga)
 ├── INDEX.md                        # Índice general + tabla de incrementales
 ├── MIGRATIONS_POLICY.md            # Política vigente
 └── README.md                       # Este archivo
@@ -52,9 +54,9 @@ db-mysql/
 pnpm setup:local
 ```
 
-No ejecutes `MASTER_INSTALL.sql` a mano: borra `hotel_db`, no aplica las
-migraciones de `scripts/` y tiene dos fallos del baseline que solo `setup:local`
-corrige (ADR-039).
+Carga `schema.sql`, `catalogs.sql` y los scripts posteriores a la foto
+(ADR-050). No ejecutes `MASTER_INSTALL.sql` a mano: es la base vieja, borra
+`hotel_db` y no aplica las migraciones de `scripts/`.
 
 ### Verificación
 

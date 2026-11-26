@@ -1134,3 +1134,43 @@
   - Aiven queda encendido como vuelta atrás hasta su retirada; después se quita
     su CA del `.pem`.
 - **Revisa:** ADR-039 en cuál es la BD compartida.
+
+## ADR-050 — Una instalación nueva parte de una foto de la estructura de producción
+
+- **Estado:** ✅ aceptada (2026-11-26)
+- **Fecha:** 2026-11-26
+- **Decisión:**
+  - **`pnpm setup:local` carga `db-mysql/schema.sql`**, la estructura de la BD
+    remota sin filas, sin `DEFINER`, sin contadores `AUTO_INCREMENT` y sin las
+    `demo_snapshot_*`; después `db-mysql/catalogs.sql` (roles, métodos de pago,
+    plazas, categorías, configuración de horarios y checklist, y el usuario
+    `system-cron`) y solo los `scripts/` con fecha posterior a la foto.
+  - **Los dos ficheros los genera `scripts/snapshot-schema.sh`**: la estructura
+    sale de un volcado de la remota cargado en una base aparte; los catálogos,
+    de una instalación del repositorio, nunca de producción.
+  - **`MASTER_INSTALL.sql` y `aiven/` dejan de cargarse** y con ellos los tres
+    arreglos en memoria de `setup-local.ts`. Siguen en el repositorio como
+    historia hasta el repaso de `db-mysql/`.
+  - **Regla:** antes de cada migración, `compare-schema.sh` entre una
+    instalación del repositorio y una copia de la remota debe salir sin
+    diferencias; si no, se corrige primero.
+- **Motivo:** instalar era «foto de mayo + 16 scripts + 3 arreglos», y el
+  resultado se separaba de producción en comentarios, orden de columnas, cuerpos
+  y `sql_mode`. Con la foto, instalar da producción por construcción:
+  `compare-schema.sh` contra una copia de la remota sale con cero diferencias.
+- **Rechazado:**
+  - Mantener la foto de mayo con un script de alineación: menos cambio, pero la
+    instalación sigue recorriendo parches que producción nunca recorrió así.
+  - Copiar producción a local: tiene datos de personas, aunque sean de prueba, y
+    quien clona el repositorio no tiene acceso a la remota.
+- **Consecuencias:**
+  - Lo que estaba solo en producción pasa a ser lo oficial: textos de
+    comentarios, orden de columnas en `users` y `scheduling_assignments` y el
+    `sql_mode` ANSI de triggers y rutinas, heredado de Aiven. No cambia lo que
+    hace la aplicación.
+  - Un cambio de esquema sigue siendo un `scripts/AAAAMMDD_*.sql`; la foto se
+    puede volver a sacar cuando se acumulen scripts, y entonces sube la fecha de
+    corte de `setup-local.ts`.
+  - `schema.sql` es público: un test comprueba que no lleve `DEFINER` ni
+    direcciones del servidor, y se revisa a mano antes de cada commit.
+- **Revisa:** ADR-039 en cómo se instala la BD local.
